@@ -37,9 +37,9 @@ if(NOT POLICY CMP0048)
   endif()
 endif()
 if(VERSION_PATCH STREQUAL "0")
-  project(DDNet VERSION ${VERSION_MAJOR}.${VERSION_MINOR})
+  project(Toutuo VERSION ${VERSION_MAJOR}.${VERSION_MINOR})
 else()
-  project(DDNet VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
+  project(Toutuo VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 endif()
 
 set(ORIGINAL_CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH})
@@ -186,8 +186,8 @@ else()
   )
 endif()
 
-set(SERVER_EXECUTABLE DDNet-Server CACHE STRING "Name of the built server executable")
-set(CLIENT_EXECUTABLE DDNet CACHE STRING "Name of the build client executable")
+set(SERVER_EXECUTABLE Toutuo-Server CACHE STRING "Name of the built server executable")
+set(CLIENT_EXECUTABLE Toutuo CACHE STRING "Name of the build client executable")
 
 ########################################################################
 # Compiler flags
@@ -1823,36 +1823,8 @@ set_src(ENGINE_GFX GLOB src/engine/gfx
   image_manipulation.cpp
   image_manipulation.h
 )
-set_src(GAME_SHARED GLOB src/game
-  bezier.cpp
-  bezier.h
-  collision.cpp
-  collision.h
-  ddracechat.h
-  ddracecommands.h
-  gamecore.cpp
-  gamecore.h
-  layers.cpp
-  layers.h
-  localization.cpp
-  localization.h
-  mapbugs.cpp
-  mapbugs.h
-  mapbugs_list.h
-  mapitems.cpp
-  mapitems.h
-  mapitems_ex.cpp
-  mapitems_ex.h
-  mapitems_ex_types.h
-  prng.cpp
-  prng.h
-  teamscore.cpp
-  teamscore.h
-  tuning.h
-  variables.h
-  version.h
-  voting.h
-)
+file(GLOB GAME_SHARED "src/game/*.cpp" "src/game/*.h")
+
 # A bit hacky, but these are needed to register all the UUIDs, even for stuff
 # that doesn't link game.
 set(ENGINE_UUID_SHARED
@@ -1928,200 +1900,11 @@ if(CLIENT)
   add_library(${TARGET_STEAMAPI} ${STEAMAPI_KIND} ${STEAMAPI_SRC})
   list(APPEND TARGETS_OWN ${TARGET_STEAMAPI})
 
-  set_src(ENGINE_CLIENT GLOB_RECURSE src/engine/client
-    backend/backend_base.cpp
-    backend/backend_base.h
-    backend/glsl_shader_compiler.cpp
-    backend/glsl_shader_compiler.h
-    backend/null/backend_null.cpp
-    backend/null/backend_null.h
-    backend/opengl/backend_opengl.cpp
-    backend/opengl/backend_opengl.h
-    backend/opengl/backend_opengl3.cpp
-    backend/opengl/backend_opengl3.h
-    backend/opengl/opengl_sl.cpp
-    backend/opengl/opengl_sl.h
-    backend/opengl/opengl_sl_program.cpp
-    backend/opengl/opengl_sl_program.h
-    backend/opengles/backend_opengles.cpp
-    backend/opengles/backend_opengles.h
-    backend/opengles/backend_opengles3.cpp
-    backend/opengles/backend_opengles3.h
-    backend/opengles/gles_class_defines.h
-    backend/opengles/opengles_sl.cpp
-    backend/opengles/opengles_sl_program.cpp
-    backend/vulkan/backend_vulkan.cpp
-    backend/vulkan/backend_vulkan.h
-    backend_sdl.cpp
-    backend_sdl.h
-    blocklist_driver.cpp
-    blocklist_driver.h
-    checksum.h
-    client.cpp
-    client.h
-    demoedit.cpp
-    demoedit.h
-    discord.cpp
-    friends.cpp
-    friends.h
-    ghost.cpp
-    ghost.h
-    graphics_defines.h
-    graphics_threaded.cpp
-    graphics_threaded.h
-    input.cpp
-    input.h
-    keynames.h
-    notifications.cpp
-    notifications.h
-    serverbrowser.cpp
-    serverbrowser.h
-    serverbrowser_http.cpp
-    serverbrowser_http.h
-    serverbrowser_ping_cache.cpp
-    serverbrowser_ping_cache.h
-    sound.cpp
-    sound.h
-    sqlite.cpp
-    steam.cpp
-    text.cpp
-    updater.cpp
-    updater.h
-    video.cpp
-    video.h
-  )
-  set_src(GAME_CLIENT GLOB_RECURSE src/game/client
-    animstate.cpp
-    animstate.h
-    component.cpp
-    component.h
-    components/background.cpp
-    components/background.h
-    components/binds.cpp
-    components/binds.h
-    components/broadcast.cpp
-    components/broadcast.h
-    components/camera.cpp
-    components/camera.h
-    components/chat.cpp
-    components/chat.h
-    components/console.cpp
-    components/console.h
-    components/controls.cpp
-    components/controls.h
-    components/countryflags.cpp
-    components/countryflags.h
-    components/damageind.cpp
-    components/damageind.h
-    components/debughud.cpp
-    components/debughud.h
-    components/effects.cpp
-    components/effects.h
-    components/emoticon.cpp
-    components/emoticon.h
-    components/flow.cpp
-    components/flow.h
-    components/freezebars.cpp
-    components/freezebars.h
-    components/ghost.cpp
-    components/ghost.h
-    components/hud.cpp
-    components/hud.h
-    components/items.cpp
-    components/items.h
-    components/killmessages.cpp
-    components/killmessages.h
-    components/mapimages.cpp
-    components/mapimages.h
-    components/maplayers.cpp
-    components/maplayers.h
-    components/mapsounds.cpp
-    components/mapsounds.h
-    components/menu_background.cpp
-    components/menu_background.h
-    components/menus.cpp
-    components/menus.h
-    components/menus_browser.cpp
-    components/menus_demo.cpp
-    components/menus_ingame.cpp
-    components/menus_settings.cpp
-    components/menus_settings_assets.cpp
-    components/menus_start.cpp
-    components/motd.cpp
-    components/motd.h
-    components/nameplates.cpp
-    components/nameplates.h
-    components/particles.cpp
-    components/particles.h
-    components/players.cpp
-    components/players.h
-    components/race_demo.cpp
-    components/race_demo.h
-    components/scoreboard.cpp
-    components/scoreboard.h
-    components/skins.cpp
-    components/skins.h
-    components/sounds.cpp
-    components/sounds.h
-    components/spectator.cpp
-    components/spectator.h
-    components/statboard.cpp
-    components/statboard.h
-    components/tooltips.cpp
-    components/tooltips.h
-    components/voting.cpp
-    components/voting.h
-    gameclient.cpp
-    gameclient.h
-    lineinput.cpp
-    lineinput.h
-    prediction/entities/character.cpp
-    prediction/entities/character.h
-    prediction/entities/laser.cpp
-    prediction/entities/laser.h
-    prediction/entities/pickup.cpp
-    prediction/entities/pickup.h
-    prediction/entities/projectile.cpp
-    prediction/entities/projectile.h
-    prediction/entity.cpp
-    prediction/entity.h
-    prediction/gameworld.cpp
-    prediction/gameworld.h
-    projectile_data.cpp
-    projectile_data.h
-    race.cpp
-    race.h
-    render.cpp
-    render.h
-    render_map.cpp
-    skin.h
-    ui.cpp
-    ui.h
-    ui_ex.cpp
-    ui_ex.h
-  )
-  set_src(GAME_EDITOR GLOB src/game/editor
-    auto_map.cpp
-    auto_map.h
-    editor.cpp
-    editor.h
-    explanations.cpp
-    io.cpp
-    layer_game.cpp
-    layer_quads.cpp
-    layer_sounds.cpp
-    layer_tiles.cpp
-    popups.cpp
-  )
-  set(GAME_GENERATED_CLIENT
-    src/game/generated/checksum.cpp
-    src/game/generated/client_data.cpp
-    src/game/generated/client_data.h
-    src/game/generated/client_data7.cpp
-    src/game/generated/client_data7.h
-  )
+  file(GLOB_RECURSE ENGINE_CLIENT "src/engine/client/*.cpp" "src/engine/client/*.h")
+  file(GLOB_RECURSE GAME_CLIENT "src/game/client/*.cpp" "src/game/client/*.h")
+  file(GLOB GAME_EDITOR "src/game/editor/*.cpp" "src/game/editor/*.h")
+  set(GAME_GENERATED_CLIENT src/game/generated/checksum.cpp src/game/generated/client_data.cpp src/game/generated/client_data.h src/game/generated/client_data7.cpp src/game/generated/client_data7.h)
   set(CLIENT_SRC ${ENGINE_CLIENT} ${PLATFORM_CLIENT} ${GAME_CLIENT} ${GAME_EDITOR} ${GAME_GENERATED_CLIENT})
-
   set(DEPS_CLIENT ${DEPS} ${GLEW_DEP} ${WAVPACK_DEP})
 
   # Libraries
@@ -2268,86 +2051,9 @@ if(SERVER)
     antibot_null.cpp
   )
 
-  set_src(ENGINE_SERVER GLOB_RECURSE src/engine/server
-    antibot.cpp
-    antibot.h
-    authmanager.cpp
-    authmanager.h
-    databases/connection.cpp
-    databases/connection.h
-    databases/connection_pool.cpp
-    databases/connection_pool.h
-    databases/mysql.cpp
-    databases/sqlite.cpp
-    name_ban.cpp
-    name_ban.h
-    register.cpp
-    register.h
-    server.cpp
-    server.h
-    sql_string_helpers.cpp
-    sql_string_helpers.h
-    upnp.cpp
-    upnp.h
-  )
-  set_src(GAME_SERVER GLOB_RECURSE src/game/server
-    alloc.h
-    ddracechat.cpp
-    ddracecommands.cpp
-    entities/character.cpp
-    entities/character.h
-    entities/door.cpp
-    entities/door.h
-    entities/dragger.cpp
-    entities/dragger.h
-    entities/dragger_beam.cpp
-    entities/dragger_beam.h
-    entities/flag.cpp
-    entities/flag.h
-    entities/gun.cpp
-    entities/gun.h
-    entities/laser.cpp
-    entities/laser.h
-    entities/light.cpp
-    entities/light.h
-    entities/pickup.cpp
-    entities/pickup.h
-    entities/plasma.cpp
-    entities/plasma.h
-    entities/projectile.cpp
-    entities/projectile.h
-    entity.cpp
-    entity.h
-    eventhandler.cpp
-    eventhandler.h
-    gamecontext.cpp
-    gamecontext.h
-    gamecontroller.cpp
-    gamecontroller.h
-    gamemodes/DDRace.cpp
-    gamemodes/DDRace.h
-    gameworld.cpp
-    gameworld.h
-    player.cpp
-    player.h
-    save.cpp
-    save.h
-    score.cpp
-    score.h
-    scoreworker.cpp
-    scoreworker.h
-    teams.cpp
-    teams.h
-    teehistorian.cpp
-    teehistorian.h
-    teeinfo.cpp
-    teeinfo.h
-  )
-  set(GAME_GENERATED_SERVER
-    "src/game/generated/server_data.cpp"
-    "src/game/generated/server_data.h"
-    "src/game/generated/wordlist.h"
-  )
+  file(GLOB_RECURSE ENGINE_SERVER "src/engine/server/*.cpp" "src/engine/server/*.h")
+  file(GLOB_RECURSE GAME_SERVER "src/game/server/*.cpp" "src/game/server/*.h")
+  set(GAME_GENERATED_SERVER "src/game/generated/server_data.cpp" "src/game/generated/server_data.h" "src/game/generated/wordlist.h")
   set(SERVER_SRC ${ENGINE_SERVER} ${GAME_SERVER} ${GAME_GENERATED_SERVER})
   if(TARGET_OS STREQUAL "windows")
     set(SERVER_ICON "other/icons/DDNet-Server.rc")
