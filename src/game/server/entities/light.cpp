@@ -6,7 +6,6 @@
 
 #include <game/generated/protocol.h>
 #include <game/mapitems.h>
-#include <game/teamscore.h>
 #include <game/version.h>
 
 #include <game/server/gamecontext.h>
@@ -35,7 +34,7 @@ bool CLight::HitCharacter()
 		return false;
 	for(auto *Char : HitCharacters)
 	{
-		if(m_Layer == LAYER_SWITCH && m_Number > 0 && !Switchers()[m_Number].m_Status[Char->Team()])
+		if(m_Layer == LAYER_SWITCH && m_Number > 0 && !Switchers()[m_Number].m_Status[Char->EventGroup()])
 			continue;
 		Char->Freeze();
 	}
@@ -126,7 +125,7 @@ void CLight::Snap(int SnappingClient)
 	else
 	{
 		int Tick = (Server()->Tick() % Server()->TickSpeed()) % 6;
-		if(pChr && pChr->IsAlive() && m_Layer == LAYER_SWITCH && m_Number > 0 && !Switchers()[m_Number].m_Status[pChr->Team()] && Tick)
+		if(pChr && pChr->IsAlive() && m_Layer == LAYER_SWITCH && m_Number > 0 && !Switchers()[m_Number].m_Status[pChr->EventGroup()] && Tick)
 			return;
 	}
 
@@ -139,12 +138,7 @@ void CLight::Snap(int SnappingClient)
 	pObj->m_X = (int)m_Pos.x;
 	pObj->m_Y = (int)m_Pos.y;
 
-	if(pChr && pChr->Team() == TEAM_SUPER)
-	{
-		pObj->m_FromX = (int)m_Pos.x;
-		pObj->m_FromY = (int)m_Pos.y;
-	}
-	else if(pChr && m_Layer == LAYER_SWITCH && Switchers()[m_Number].m_Status[pChr->Team()])
+	if(pChr && m_Layer == LAYER_SWITCH && Switchers()[m_Number].m_Status[pChr->EventGroup()])
 	{
 		pObj->m_FromX = (int)m_To.x;
 		pObj->m_FromY = (int)m_To.y;

@@ -22,8 +22,5 @@ public:
 
 	// This constructor will assume all arrays are of length 6
 	CTeeInfo(const char *pSkinPartNames[6], int *pUseCustomColors, int *pSkinPartColors);
-
-	void FromSixup();
-	void ToSixup();
 };
 #endif //GAME_SERVER_TEEINFO_H

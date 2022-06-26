@@ -44,7 +44,7 @@ void CPickup::Tick()
 
 		if(pChr && pChr->IsAlive())
 		{
-			if(m_Layer == LAYER_SWITCH && m_Number > 0 && !Switchers()[m_Number].m_Status[pChr->Team()])
+			if(m_Layer == LAYER_SWITCH && m_Number > 0 && !Switchers()[m_Number].m_Status[pChr->EventGroup()])
 				continue;
 			bool Sound = false;
 			// player picked us up, is someone was hooking us, let them go
@@ -56,8 +56,6 @@ void CPickup::Tick()
 				break;
 
 			case POWERUP_ARMOR:
-				if(pChr->Team() == TEAM_SUPER)
-					continue;
 				for(int j = WEAPON_SHOTGUN; j < NUM_WEAPONS; j++)
 				{
 					if(pChr->GetWeaponGot(j))
@@ -80,8 +78,6 @@ void CPickup::Tick()
 				break;
 
 			case POWERUP_ARMOR_SHOTGUN:
-				if(pChr->Team() == TEAM_SUPER)
-					continue;
 				if(pChr->GetWeaponGot(WEAPON_SHOTGUN))
 				{
 					pChr->SetWeaponGot(WEAPON_SHOTGUN, false);
@@ -94,8 +90,6 @@ void CPickup::Tick()
 				break;
 
 			case POWERUP_ARMOR_GRENADE:
-				if(pChr->Team() == TEAM_SUPER)
-					continue;
 				if(pChr->GetWeaponGot(WEAPON_GRENADE))
 				{
 					pChr->SetWeaponGot(WEAPON_GRENADE, false);
@@ -108,16 +102,12 @@ void CPickup::Tick()
 				break;
 
 			case POWERUP_ARMOR_NINJA:
-				if(pChr->Team() == TEAM_SUPER)
-					continue;
 				pChr->SetNinjaActivationDir(vec2(0, 0));
 				pChr->SetNinjaActivationTick(-500);
 				pChr->SetNinjaCurrentMoveTime(0);
 				break;
 
 			case POWERUP_ARMOR_LASER:
-				if(pChr->Team() == TEAM_SUPER)
-					continue;
 				if(pChr->GetWeaponGot(WEAPON_LASER))
 				{
 					pChr->SetWeaponGot(WEAPON_LASER, false);
@@ -130,7 +120,6 @@ void CPickup::Tick()
 				break;
 
 			case POWERUP_WEAPON:
-
 				if(m_Subtype >= 0 && m_Subtype < NUM_WEAPONS && (!pChr->GetWeaponGot(m_Subtype) || pChr->GetWeaponAmmo(m_Subtype) != -1))
 				{
 					pChr->GiveWeapon(m_Subtype);
@@ -189,12 +178,11 @@ void CPickup::Snap(int SnappingClient)
 	else
 	{
 		int Tick = (Server()->Tick() % Server()->TickSpeed()) % 11;
-		if(pChar && pChar->IsAlive() && m_Layer == LAYER_SWITCH && m_Number > 0 && !Switchers()[m_Number].m_Status[pChar->Team()] && !Tick)
+		if(pChar && pChar->IsAlive() && m_Layer == LAYER_SWITCH && m_Number > 0 && !Switchers()[m_Number].m_Status[pChar->EventGroup()] && !Tick)
 			return;
 	}
 
-	int Size = Server()->IsSixup(SnappingClient) ? 3 * 4 : sizeof(CNetObj_Pickup);
-	CNetObj_Pickup *pPickup = static_cast<CNetObj_Pickup *>(Server()->SnapNewItem(NETOBJTYPE_PICKUP, GetID(), Size));
+	CNetObj_Pickup *pPickup = static_cast<CNetObj_Pickup *>(Server()->SnapNewItem(NETOBJTYPE_PICKUP, GetID(), sizeof(CNetObj_Pickup)));
 	if(!pPickup)
 		return;
 
@@ -208,15 +196,7 @@ void CPickup::Snap(int SnappingClient)
 			pPickup->m_Type = POWERUP_ARMOR;
 		}
 	}
-	if(Server()->IsSixup(SnappingClient))
-	{
-		if(m_Type == POWERUP_WEAPON)
-			pPickup->m_Type = m_Subtype == WEAPON_SHOTGUN ? 3 : m_Subtype == WEAPON_GRENADE ? 2 : 4;
-		else if(m_Type == POWERUP_NINJA)
-			pPickup->m_Type = 5;
-	}
-	else
-		pPickup->m_Subtype = m_Subtype;
+	pPickup->m_Subtype = m_Subtype;
 }
 
 void CPickup::Move()

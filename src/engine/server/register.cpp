@@ -582,11 +582,6 @@ void CRegister::OnConfigChange()
 			}
 		}
 	}
-	if(!m_pConfig->m_SvSixup)
-	{
-		m_aProtocolEnabled[PROTOCOL_TW7_IPV6] = false;
-		m_aProtocolEnabled[PROTOCOL_TW7_IPV4] = false;
-	}
 	m_NumExtraHeaders = 0;
 	const char *pRegisterExtra = m_pConfig->m_SvRegisterExtra;
 	char aHeader[128];

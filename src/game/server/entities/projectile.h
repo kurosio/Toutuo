@@ -47,7 +47,6 @@ private:
 	int m_Bouncing;
 	bool m_Freeze;
 	int m_TuneZone;
-	bool m_BelongsToPracticeTeam;
 
 public:
 	void SetBouncing(int Value);

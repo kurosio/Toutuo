@@ -12,7 +12,6 @@
 
 #include <game/server/gamecontext.h>
 #include <game/server/player.h>
-#include <game/server/teams.h>
 
 CDragger::CDragger(CGameWorld *pGameWorld, vec2 Pos, float Strength, bool IgnoreWalls, int Layer, int Number) :
 	CEntity(pGameWorld, CGameWorld::ENTTYPE_LASER)
@@ -84,13 +83,8 @@ void CDragger::LookForPlayersToDrag()
 	for(int i = 0; i < NumPlayersInRange; i++)
 	{
 		CCharacter *pTarget = pPlayersInRange[i];
-		const int &TargetTeam = pTarget->Team();
+		const int &TargetTeam = pTarget->EventGroup();
 
-		// Do not create a dragger beam for super player
-		if(TargetTeam == TEAM_SUPER)
-		{
-			continue;
-		}
 		// If the dragger is disabled for the target's team, no dragger beam will be generated
 		if(m_Layer == LAYER_SWITCH && m_Number > 0 &&
 			!Switchers()[m_Number].m_Status[TargetTeam])
@@ -106,21 +100,13 @@ void CDragger::LookForPlayersToDrag()
 		if(IsReachable && pTarget->IsAlive())
 		{
 			const int &TargetClientId = pTarget->GetPlayer()->GetCID();
-			// Solo players are dragged independently from the rest of the team
-			if(pTarget->Teams()->m_Core.GetSolo(TargetClientId))
+			int Distance = distance(pTarget->m_Pos, m_Pos);
+			if(MinDistInTeam[TargetTeam] == 0 || MinDistInTeam[TargetTeam] > Distance)
 			{
-				IsTarget[TargetClientId] = true;
+				MinDistInTeam[TargetTeam] = Distance;
+				ClosestTargetIdInTeam[TargetTeam] = TargetClientId;
 			}
-			else
-			{
-				int Distance = distance(pTarget->m_Pos, m_Pos);
-				if(MinDistInTeam[TargetTeam] == 0 || MinDistInTeam[TargetTeam] > Distance)
-				{
-					MinDistInTeam[TargetTeam] = Distance;
-					ClosestTargetIdInTeam[TargetTeam] = TargetClientId;
-				}
-				CanStillBeTeamTarget[TargetClientId] = true;
-			}
+			CanStillBeTeamTarget[TargetClientId] = true;
 		}
 	}
 
@@ -214,7 +200,7 @@ void CDragger::Snap(int SnappingClient)
 
 		int Tick = (Server()->Tick() % Server()->TickSpeed()) % 11;
 		if(pChar && m_Layer == LAYER_SWITCH && m_Number > 0 &&
-			!Switchers()[m_Number].m_Status[pChar->Team()] && !Tick)
+			!Switchers()[m_Number].m_Status[pChar->EventGroup()] && !Tick)
 			return;
 	}
 

@@ -63,7 +63,7 @@ public:
 
 	virtual int SendMsg(CMsgPacker *pMsg, int Flags, int ClientID) = 0;
 
-	template<class T, typename std::enable_if<!protocol7::is_sixup<T>::value, int>::type = 0>
+	template<class T>
 	inline int SendPackMsg(T *pMsg, int Flags, int ClientID)
 	{
 		int Result = 0;
@@ -82,22 +82,6 @@ public:
 			mem_copy(&tmp, pMsg, sizeof(T));
 			Result = SendPackMsgTranslate(&tmp, Flags, ClientID);
 		}
-		return Result;
-	}
-
-	template<class T, typename std::enable_if<protocol7::is_sixup<T>::value, int>::type = 1>
-	inline int SendPackMsg(T *pMsg, int Flags, int ClientID)
-	{
-		int Result = 0;
-		if(ClientID == -1)
-		{
-			for(int i = 0; i < MaxClients(); i++)
-				if(ClientIngame(i) && IsSixup(i))
-					Result = SendPackMsgOne(pMsg, Flags, i);
-		}
-		else if(IsSixup(ClientID))
-			Result = SendPackMsgOne(pMsg, Flags, ClientID);
-
 		return Result;
 	}
 
@@ -121,16 +105,6 @@ public:
 			str_format(msgbuf, sizeof(msgbuf), "%s: %s", ClientName(pMsg->m_ClientID), pMsg->m_pMessage);
 			pMsg->m_pMessage = msgbuf;
 			pMsg->m_ClientID = VANILLA_MAX_CLIENTS - 1;
-		}
-
-		if(IsSixup(ClientID))
-		{
-			protocol7::CNetMsg_Sv_Chat Msg7;
-			Msg7.m_ClientID = pMsg->m_ClientID;
-			Msg7.m_pMessage = pMsg->m_pMessage;
-			Msg7.m_Mode = pMsg->m_Team > 0 ? protocol7::CHAT_TEAM : protocol7::CHAT_ALL;
-			Msg7.m_TargetID = -1;
-			return SendPackMsgOne(&Msg7, Flags, ClientID);
 		}
 
 		return SendPackMsgOne(pMsg, Flags, ClientID);
@@ -165,8 +139,6 @@ public:
 
 	bool Translate(int &Target, int Client)
 	{
-		if(IsSixup(Client))
-			return true;
 		int ClientVersion = Client != SERVER_DEMO_CLIENT ? GetClientVersion(Client) : CLIENT_VERSIONNR;
 		if(ClientVersion >= VERSION_DDNET_OLD)
 			return true;
@@ -186,8 +158,6 @@ public:
 
 	bool ReverseTranslate(int &Target, int Client)
 	{
-		if(IsSixup(Client))
-			return true;
 		int ClientVersion = Client != SERVER_DEMO_CLIENT ? GetClientVersion(Client) : CLIENT_VERSIONNR;
 		if(ClientVersion >= VERSION_DDNET_OLD)
 			return true;
@@ -256,8 +226,6 @@ public:
 	virtual void SendMsgRaw(int ClientID, const void *pData, int Size, int Flags) = 0;
 
 	virtual const char *GetMapName() const = 0;
-
-	virtual bool IsSixup(int ClientID) const = 0;
 };
 
 class IGameServer : public IInterface

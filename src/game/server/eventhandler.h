@@ -29,8 +29,6 @@ public:
 	void *Create(int Type, int Size, int64_t Mask = -1LL);
 	void Clear();
 	void Snap(int SnappingClient);
-
-	void EventToSixup(int *Type, int *Size, const char **Data);
 };
 
 #endif

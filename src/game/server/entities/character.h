@@ -4,9 +4,7 @@
 #define GAME_SERVER_ENTITIES_CHARACTER_H
 
 #include <game/server/entity.h>
-#include <game/server/save.h>
 
-class CGameTeams;
 class CGameWorld;
 class IAntibot;
 struct CAntibotCharacterData;
@@ -40,12 +38,11 @@ public:
 	void SwapClients(int Client1, int Client2) override;
 
 	bool CanSnapCharacter(int SnappingClient);
-
+	int EventGroup() const { return 0; }
 	bool IsGrounded();
 
 	void SetWeapon(int W);
 	void SetSolo(bool Solo);
-	void SetLiveFrozen(bool Active);
 	void HandleWeaponSwitch();
 	void DoWeaponSwitch();
 
@@ -74,8 +71,6 @@ public:
 	void SetEndlessHook(bool Enable);
 
 	void SetEmote(int Emote, int Tick);
-
-	void Rescue();
 
 	int NeededFaketuning() { return m_NeededFaketuning; }
 	bool IsAlive() const { return m_Alive; }
@@ -129,8 +124,6 @@ private:
 
 	// the player core for the physics
 	CCharacterCore m_Core;
-	CGameTeams *m_pTeams = nullptr;
-
 	std::map<int, std::vector<vec2>> *m_pTeleOuts = nullptr;
 	std::map<int, std::vector<vec2>> *m_pTeleCheckOuts = nullptr;
 
@@ -148,7 +141,6 @@ private:
 	int m_LastBroadcast;
 	void DDRaceInit();
 	void HandleSkippableTiles(int Index);
-	void SetRescue();
 	void DDRaceTick();
 	void DDRacePostCoreTick();
 	void HandleBroadcast();
@@ -156,13 +148,7 @@ private:
 	void SendZoneMsgs();
 	IAntibot *Antibot();
 
-	bool m_SetSavePos;
-	CSaveTee m_RescueTee;
-	bool m_Solo;
-
 public:
-	CGameTeams *Teams() { return m_pTeams; }
-	void SetTeams(CGameTeams *pTeams);
 	void SetTeleports(std::map<int, std::vector<vec2>> *pTeleOuts, std::map<int, std::vector<vec2>> *pTeleCheckOuts);
 
 	void FillAntibot(CAntibotCharacterData *pData);
@@ -173,9 +159,7 @@ public:
 	void GiveAllWeapons();
 	void ResetPickups();
 	int m_DDRaceState;
-	int Team();
 	bool CanCollide(int ClientID);
-	bool SameTeam(int ClientID);
 	bool m_Super;
 	bool m_SuperJump;
 	bool m_Jetpack;
@@ -214,7 +198,6 @@ public:
 
 	vec2 m_Intersection;
 	int64_t m_LastStartWarning;
-	int64_t m_LastRescue;
 	bool m_LastRefillJumps;
 	bool m_LastPenalty;
 	bool m_LastBonus;
@@ -251,8 +234,6 @@ public:
 	bool HasTelegunGun() { return m_Core.m_HasTelegunGun; }
 	bool HasTelegunGrenade() { return m_Core.m_HasTelegunGrenade; }
 	bool HasTelegunLaser() { return m_Core.m_HasTelegunLaser; }
-
-	CSaveTee &GetRescueTeeRef() { return m_RescueTee; }
 };
 
 enum

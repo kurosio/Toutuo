@@ -12,7 +12,6 @@
 
 #include <game/server/gamecontext.h>
 #include <game/server/player.h>
-#include <game/server/teams.h>
 
 CGun::CGun(CGameWorld *pGameWorld, vec2 Pos, bool Freeze, bool Explosive, int Layer, int Number) :
 	CEntity(pGameWorld, CGameWorld::ENTTYPE_LASER)
@@ -71,12 +70,8 @@ void CGun::Fire()
 	for(int i = 0; i < NumPlayersInRange; i++)
 	{
 		CCharacter *pTarget = pPlayersInRange[i];
-		const int &TargetTeam = pTarget->Team();
-		// Do not fire at super players
-		if(TargetTeam == TEAM_SUPER)
-		{
-			continue;
-		}
+		const int &TargetTeam = pTarget->EventGroup();
+		
 		// If the turret is disabled for the target's team, the turret will not fire
 		if(m_Layer == LAYER_SWITCH && m_Number > 0 &&
 			!Switchers()[m_Number].m_Status[TargetTeam])
@@ -86,11 +81,7 @@ void CGun::Fire()
 
 		// Turrets can only shoot at a speed of sv_plasma_per_sec
 		const int &TargetClientId = pTarget->GetPlayer()->GetCID();
-		const bool &TargetIsSolo = pTarget->Teams()->m_Core.GetSolo(TargetClientId);
-		if((TargetIsSolo &&
-			   m_LastFireSolo[TargetClientId] + Server()->TickSpeed() / g_Config.m_SvPlasmaPerSec > Server()->Tick()) ||
-			(!TargetIsSolo &&
-				m_LastFireTeam[TargetTeam] + Server()->TickSpeed() / g_Config.m_SvPlasmaPerSec > Server()->Tick()))
+		if(m_LastFireTeam[TargetTeam] + Server()->TickSpeed() / g_Config.m_SvPlasmaPerSec > Server()->Tick())
 		{
 			continue;
 		}
@@ -99,20 +90,11 @@ void CGun::Fire()
 		int IsReachable = !GameServer()->Collision()->IntersectLine(m_Pos, pTarget->m_Pos, 0, 0);
 		if(IsReachable && pTarget->IsAlive())
 		{
-			// Turrets fire on solo players regardless of the rest of the team
-			if(TargetIsSolo)
+			int Distance = distance(pTarget->m_Pos, m_Pos);
+			if(MinDistInTeam[TargetTeam] == 0 || MinDistInTeam[TargetTeam] > Distance)
 			{
-				IsTarget[TargetClientId] = true;
-				m_LastFireSolo[TargetClientId] = Server()->Tick();
-			}
-			else
-			{
-				int Distance = distance(pTarget->m_Pos, m_Pos);
-				if(MinDistInTeam[TargetTeam] == 0 || MinDistInTeam[TargetTeam] > Distance)
-				{
-					MinDistInTeam[TargetTeam] = Distance;
-					TargetIdInTeam[TargetTeam] = TargetClientId;
-				}
+				MinDistInTeam[TargetTeam] = Distance;
+				TargetIdInTeam[TargetTeam] = TargetClientId;
 			}
 		}
 	}
@@ -185,7 +167,7 @@ void CGun::Snap(int SnappingClient)
 
 		int Tick = (Server()->Tick() % Server()->TickSpeed()) % 11;
 		if(pChar && m_Layer == LAYER_SWITCH && m_Number > 0 &&
-			!Switchers()[m_Number].m_Status[pChar->Team()] && (!Tick))
+			!Switchers()[m_Number].m_Status[pChar->EventGroup()] && (!Tick))
 			return;
 	}
 

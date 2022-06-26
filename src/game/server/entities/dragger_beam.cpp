@@ -50,7 +50,7 @@ void CDraggerBeam::Tick()
 	if(Server()->Tick() % int(Server()->TickSpeed() * 0.15f) == 0)
 	{
 		if(m_Layer == LAYER_SWITCH && m_Number > 0 &&
-			!Switchers()[m_Number].m_Status[pTarget->Team()])
+			!Switchers()[m_Number].m_Status[pTarget->EventGroup()])
 		{
 			Reset();
 			return;
