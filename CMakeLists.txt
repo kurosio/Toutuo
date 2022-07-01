@@ -1255,9 +1255,7 @@ set(EXPECTED_DATA
   editor/front.png
   editor/generic_clear.rules
   editor/generic_unhookable.rules
-  editor/generic_unhookable_0.7.rules
   editor/grass_main.rules
-  editor/grass_main_0.7.rules
   editor/jungle_main.rules
   editor/jungle_midground.rules
   editor/round_tiles.rules
@@ -1341,11 +1339,8 @@ set(EXPECTED_DATA
   mapres/generic_deathtiles.png
   mapres/generic_lamps.png
   mapres/generic_unhookable.png
-  mapres/generic_unhookable_0.7.png
   mapres/grass_doodads.png
-  mapres/grass_doodads_0.7.png
   mapres/grass_main.png
-  mapres/grass_main_0.7.png
   mapres/jungle_background.png
   mapres/jungle_deathtiles.png
   mapres/jungle_doodads.png
@@ -1387,12 +1382,6 @@ set(EXPECTED_DATA
   maps/dm8.map
   maps/dm9.map
   maps/license.txt
-  maps7/Gold\ Mine.map
-  maps7/LearnToPlay.map
-  maps7/Sunny\ Side\ Up.map
-  maps7/Tsunami.map
-  maps7/Tutorial.map
-  maps7/readme.txt
   menuimages/demos.png
   menuimages/editor.png
   menuimages/local_server.png
@@ -1606,37 +1595,6 @@ function(generate_source output_file script_parameter)
   )
 endfunction()
 
-function(generate_source7 output_file script_parameter)
-  add_custom_command(OUTPUT ${output_file}
-    COMMAND ${PYTHON_EXECUTABLE} -m datasrc.seven.compile ${script_parameter}
-      > "${PROJECT_BINARY_DIR}/${output_file}"
-    DEPENDS
-      datasrc/seven/compile.py
-      datasrc/seven/content.py
-      datasrc/seven/datatypes.py
-      datasrc/seven/network.py
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-  )
-endfunction()
-
-function(generate_maps output_file script_parameter)
-  add_custom_command(OUTPUT ${output_file}
-    COMMAND ${PYTHON_EXECUTABLE} datasrc/crosscompile.py ${script_parameter}
-      > "${PROJECT_BINARY_DIR}/${output_file}"
-    DEPENDS
-      datasrc/crosscompile.py
-      datasrc/compile.py
-      datasrc/content.py
-      datasrc/datatypes.py
-      datasrc/network.py
-      datasrc/seven/compile.py
-      datasrc/seven/content.py
-      datasrc/seven/datatypes.py
-      datasrc/seven/network.py
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-  )
-endfunction()
-
 file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/src/game/generated/")
 execute_process(COMMAND git rev-parse --git-dir
   ERROR_QUIET
@@ -1666,14 +1624,6 @@ generate_source("src/game/generated/protocol.cpp" "network_source")
 generate_source("src/game/generated/protocol.h" "network_header")
 generate_source("src/game/generated/server_data.cpp" "server_content_source")
 generate_source("src/game/generated/server_data.h" "server_content_header")
-
-generate_source7("src/game/generated/protocol7.cpp" "network_source")
-generate_source7("src/game/generated/protocol7.h" "network_header")
-generate_source7("src/game/generated/client_data7.cpp" "client_content_source")
-generate_source7("src/game/generated/client_data7.h" "client_content_header")
-
-generate_maps("src/game/generated/protocolglue.h" "map_header")
-generate_maps("src/game/generated/protocolglue.cpp" "map_source")
 
 add_custom_command(OUTPUT "src/game/generated/wordlist.h"
   COMMAND ${PYTHON_EXECUTABLE} scripts/wordlist.py > ${PROJECT_BINARY_DIR}/src/game/generated/wordlist.h
@@ -1828,10 +1778,6 @@ file(GLOB GAME_SHARED "src/game/*.cpp" "src/game/*.h")
 # A bit hacky, but these are needed to register all the UUIDs, even for stuff
 # that doesn't link game.
 set(ENGINE_UUID_SHARED
-  src/game/generated/protocolglue.cpp
-  src/game/generated/protocolglue.h
-  src/game/generated/protocol7.cpp
-  src/game/generated/protocol7.h
   src/game/generated/protocol.cpp
   src/game/generated/protocol.h
   src/game/mapitems_ex.cpp
@@ -1847,8 +1793,6 @@ list(REMOVE_ITEM GAME_SHARED ${ENGINE_UUID_SHARED})
 set(GAME_GENERATED_SHARED
   src/game/generated/git_revision.cpp
   src/game/generated/protocol.h
-  src/game/generated/protocol7.h
-  src/game/generated/protocolglue.h
 )
 set(DEPS ${DEP_JSON} ${DEP_MD5} ${ZLIB_DEP})
 
@@ -1903,7 +1847,7 @@ if(CLIENT)
   file(GLOB_RECURSE ENGINE_CLIENT "src/engine/client/*.cpp" "src/engine/client/*.h")
   file(GLOB_RECURSE GAME_CLIENT "src/game/client/*.cpp" "src/game/client/*.h")
   file(GLOB GAME_EDITOR "src/game/editor/*.cpp" "src/game/editor/*.h")
-  set(GAME_GENERATED_CLIENT src/game/generated/checksum.cpp src/game/generated/client_data.cpp src/game/generated/client_data.h src/game/generated/client_data7.cpp src/game/generated/client_data7.h)
+  set(GAME_GENERATED_CLIENT src/game/generated/checksum.cpp src/game/generated/client_data.cpp src/game/generated/client_data.h)
   set(CLIENT_SRC ${ENGINE_CLIENT} ${PLATFORM_CLIENT} ${GAME_CLIENT} ${GAME_EDITOR} ${GAME_GENERATED_CLIENT})
   set(DEPS_CLIENT ${DEPS} ${GLEW_DEP} ${WAVPACK_DEP})
 

@@ -12,8 +12,6 @@
 #include "message.h"
 #include <engine/shared/protocol.h>
 #include <game/generated/protocol.h>
-#include <game/generated/protocol7.h>
-#include <game/generated/protocolglue.h>
 #include <game/version.h>
 
 struct CAntibotRoundData;
@@ -123,7 +121,7 @@ public:
 	int SendPackMsgOne(T *pMsg, int Flags, int ClientID)
 	{
 		dbg_assert(ClientID != -1, "SendPackMsgOne called with -1");
-		CMsgPacker Packer(pMsg->MsgID(), false, protocol7::is_sixup<T>::value);
+		CMsgPacker Packer(pMsg->MsgID(), false);
 
 		if(pMsg->Pack(&Packer))
 			return -1;
@@ -286,7 +284,7 @@ public:
 	virtual void OnSetAuthed(int ClientID, int Level) = 0;
 	virtual bool PlayerExists(int ClientID) const = 0;
 
-	virtual void OnClientEngineJoin(int ClientID, bool Sixup) = 0;
+	virtual void OnClientEngineJoin(int ClientID) = 0;
 	virtual void OnClientEngineDrop(int ClientID, const char *pReason) = 0;
 
 	virtual void FillAntibot(CAntibotRoundData *pData) = 0;

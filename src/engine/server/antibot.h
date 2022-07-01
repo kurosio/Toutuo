@@ -31,7 +31,7 @@ public:
 	void Init() override;
 
 	void OnEngineTick() override;
-	void OnEngineClientJoin(int ClientID, bool Sixup) override;
+	void OnEngineClientJoin(int ClientID) override;
 	void OnEngineClientDrop(int ClientID, const char *pReason) override;
 	bool OnEngineClientMessage(int ClientID, const void *pData, int Size, int Flags) override;
 	bool OnEngineServerMessage(int ClientID, const void *pData, int Size, int Flags) override;

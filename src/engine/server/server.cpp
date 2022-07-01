@@ -917,7 +917,7 @@ void CServer::DoSnapshot()
 			continue;
 
 		{
-			m_SnapshotBuilder.Init(false);
+			m_SnapshotBuilder.Init();
 
 			GameServer()->OnSnap(i);
 
@@ -1059,7 +1059,7 @@ int CServer::NewClientNoAuthCallback(int ClientID, void *pUser)
 	return 0;
 }
 
-int CServer::NewClientCallback(int ClientID, void *pUser, bool Sixup)
+int CServer::NewClientCallback(int ClientID, void *pUser)
 {
 	CServer *pThis = (CServer *)pUser;
 	pThis->m_aClients[ClientID].m_State = CClient::STATE_PREAUTH;
@@ -1080,8 +1080,8 @@ int CServer::NewClientCallback(int ClientID, void *pUser, bool Sixup)
 	memset(&pThis->m_aClients[ClientID].m_Addr, 0, sizeof(NETADDR));
 	pThis->m_aClients[ClientID].Reset();
 
-	pThis->GameServer()->OnClientEngineJoin(ClientID, Sixup);
-	pThis->Antibot()->OnEngineClientJoin(ClientID, Sixup);
+	pThis->GameServer()->OnClientEngineJoin(ClientID);
+	pThis->Antibot()->OnEngineClientJoin(ClientID);
 
 #if defined(CONF_FAMILY_UNIX)
 	pThis->SendConnLoggingCommand(OPEN_SESSION, pThis->m_NetServer.ClientAddr(ClientID));
@@ -1338,23 +1338,6 @@ void CServer::UpdateClientRconCommands()
 	}
 }
 
-static inline int MsgFromSixup(int Msg, bool System)
-{
-	if(System)
-	{
-		if(Msg == NETMSG_INFO)
-			;
-		else if(Msg >= 14 && Msg <= 15)
-			Msg += 11;
-		else if(Msg >= 18 && Msg <= 28)
-			Msg = NETMSG_READY + Msg - 18;
-		else if(Msg < OFFSET_UUID)
-			return -1;
-	}
-
-	return Msg;
-}
-
 void CServer::ProcessClientPacket(CNetChunk *pPacket)
 {
 	int ClientID = pPacket->m_ClientID;
@@ -1428,7 +1411,7 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 				{
 					return;
 				}
-				if(str_comp(pVersion, GameServer()->NetVersion()) != 0 && str_comp(pVersion, "0.7 802f1be60a05665f") != 0)
+				if(str_comp(pVersion, GameServer()->NetVersion()) != 0)
 				{
 					// wrong version
 					char aReason[256];
@@ -2392,7 +2375,7 @@ int CServer::Run()
 #endif
 
 	IEngine *pEngine = Kernel()->RequestInterface<IEngine>();
-	m_pRegister = CreateRegister(&g_Config, m_pConsole, pEngine, this->Port(), m_NetServer.GetGlobalToken());
+	m_pRegister = CreateRegister(&g_Config, m_pConsole, pEngine, this->Port());
 
 	m_NetServer.SetCallbacks(NewClientCallback, NewClientNoAuthCallback, ClientRejoinCallback, DelClientCallback, this);
 

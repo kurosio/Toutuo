@@ -23,8 +23,6 @@ class CRegister : public IRegister
 
 		PROTOCOL_TW6_IPV6 = 0,
 		PROTOCOL_TW6_IPV4,
-		PROTOCOL_TW7_IPV6,
-		PROTOCOL_TW7_IPV4,
 		NUM_PROTOCOLS,
 	};
 
@@ -122,7 +120,7 @@ class CRegister : public IRegister
 	char m_aConnlessTokenHex[16];
 
 	std::shared_ptr<CGlobal> m_pGlobal = std::make_shared<CGlobal>();
-	bool m_aProtocolEnabled[NUM_PROTOCOLS] = {true, true, true, true};
+	bool m_aProtocolEnabled[NUM_PROTOCOLS] = {true, true};
 	CProtocol m_aProtocols[NUM_PROTOCOLS];
 
 	int m_NumExtraHeaders = 0;
@@ -135,7 +133,7 @@ class CRegister : public IRegister
 	char m_aServerInfo[16384];
 
 public:
-	CRegister(CConfig *pConfig, IConsole *pConsole, IEngine *pEngine, int ServerPort, unsigned SixupSecurityToken);
+	CRegister(CConfig *pConfig, IConsole *pConsole, IEngine *pEngine, int ServerPort);
 	void Update() override;
 	void OnConfigChange() override;
 	bool OnPacket(const CNetChunk *pPacket) override;
@@ -171,8 +169,6 @@ const char *CRegister::ProtocolToScheme(int Protocol)
 	{
 	case PROTOCOL_TW6_IPV6: return "tw-0.6+udp://";
 	case PROTOCOL_TW6_IPV4: return "tw-0.6+udp://";
-	case PROTOCOL_TW7_IPV6: return "tw-0.7+udp://";
-	case PROTOCOL_TW7_IPV4: return "tw-0.7+udp://";
 	}
 	dbg_assert(false, "invalid protocol");
 	dbg_break();
@@ -184,8 +180,6 @@ const char *CRegister::ProtocolToString(int Protocol)
 	{
 	case PROTOCOL_TW6_IPV6: return "tw0.6/ipv6";
 	case PROTOCOL_TW6_IPV4: return "tw0.6/ipv4";
-	case PROTOCOL_TW7_IPV6: return "tw0.7/ipv6";
-	case PROTOCOL_TW7_IPV4: return "tw0.7/ipv4";
 	}
 	dbg_assert(false, "invalid protocol");
 	dbg_break();
@@ -201,14 +195,6 @@ bool CRegister::ProtocolFromString(int *pResult, const char *pString)
 	{
 		*pResult = PROTOCOL_TW6_IPV4;
 	}
-	else if(str_comp(pString, "tw0.7/ipv6") == 0)
-	{
-		*pResult = PROTOCOL_TW7_IPV6;
-	}
-	else if(str_comp(pString, "tw0.7/ipv4") == 0)
-	{
-		*pResult = PROTOCOL_TW7_IPV4;
-	}
 	else
 	{
 		*pResult = -1;
@@ -223,8 +209,6 @@ const char *CRegister::ProtocolToSystem(int Protocol)
 	{
 	case PROTOCOL_TW6_IPV6: return "register/6/ipv6";
 	case PROTOCOL_TW6_IPV4: return "register/6/ipv4";
-	case PROTOCOL_TW7_IPV6: return "register/7/ipv6";
-	case PROTOCOL_TW7_IPV4: return "register/7/ipv4";
 	}
 	dbg_assert(false, "invalid protocol");
 	dbg_break();
@@ -236,8 +220,6 @@ IPRESOLVE CRegister::ProtocolToIpresolve(int Protocol)
 	{
 	case PROTOCOL_TW6_IPV6: return IPRESOLVE::V6;
 	case PROTOCOL_TW6_IPV4: return IPRESOLVE::V4;
-	case PROTOCOL_TW7_IPV6: return IPRESOLVE::V6;
-	case PROTOCOL_TW7_IPV4: return IPRESOLVE::V4;
 	}
 	dbg_assert(false, "invalid protocol");
 	dbg_break();
@@ -287,10 +269,6 @@ void CRegister::CProtocol::SendRegister()
 	}
 	pRegister->HeaderString("Address", aAddress);
 	pRegister->HeaderString("Secret", aSecret);
-	if(m_Protocol == PROTOCOL_TW7_IPV6 || m_Protocol == PROTOCOL_TW7_IPV4)
-	{
-		pRegister->HeaderString("Connless-Token", m_pParent->m_aConnlessTokenHex);
-	}
 	pRegister->HeaderString("Challenge-Secret", aChallengeSecret);
 	if(m_HaveChallengeToken)
 	{
@@ -477,7 +455,7 @@ void CRegister::CProtocol::CJob::Run()
 	}
 }
 
-CRegister::CRegister(CConfig *pConfig, IConsole *pConsole, IEngine *pEngine, int ServerPort, unsigned SixupSecurityToken) :
+CRegister::CRegister(CConfig *pConfig, IConsole *pConsole, IEngine *pEngine, int ServerPort) :
 	m_pConfig(pConfig),
 	m_pConsole(pConsole),
 	m_pEngine(pEngine),
@@ -485,8 +463,6 @@ CRegister::CRegister(CConfig *pConfig, IConsole *pConsole, IEngine *pEngine, int
 	m_aProtocols{
 		CProtocol(this, PROTOCOL_TW6_IPV6),
 		CProtocol(this, PROTOCOL_TW6_IPV4),
-		CProtocol(this, PROTOCOL_TW7_IPV6),
-		CProtocol(this, PROTOCOL_TW7_IPV4),
 	}
 {
 	const int HEADER_LEN = sizeof(SERVERBROWSE_CHALLENGE);
@@ -494,13 +470,7 @@ CRegister::CRegister(CConfig *pConfig, IConsole *pConsole, IEngine *pEngine, int
 	FormatUuid(m_ChallengeSecret, m_aVerifyPacketPrefix + HEADER_LEN, sizeof(m_aVerifyPacketPrefix) - HEADER_LEN);
 	m_aVerifyPacketPrefix[HEADER_LEN + UUID_MAXSTRSIZE - 1] = ':';
 
-	// The DDNet code uses the `unsigned` security token in memory byte order.
-	unsigned char TokenBytes[4];
-	mem_copy(TokenBytes, &SixupSecurityToken, sizeof(TokenBytes));
-	str_format(m_aConnlessTokenHex, sizeof(m_aConnlessTokenHex), "%08x", bytes_be_to_uint(TokenBytes));
-
 	m_pConsole->Chain("sv_register", ConchainOnConfigChange, this);
-	m_pConsole->Chain("sv_sixup", ConchainOnConfigChange, this);
 }
 
 void CRegister::Update()
@@ -554,22 +524,15 @@ void CRegister::OnConfigChange()
 			if(str_comp(aBuf, "ipv6") == 0)
 			{
 				m_aProtocolEnabled[PROTOCOL_TW6_IPV6] = true;
-				m_aProtocolEnabled[PROTOCOL_TW7_IPV6] = true;
 			}
 			else if(str_comp(aBuf, "ipv4") == 0)
 			{
 				m_aProtocolEnabled[PROTOCOL_TW6_IPV4] = true;
-				m_aProtocolEnabled[PROTOCOL_TW7_IPV4] = true;
 			}
 			else if(str_comp(aBuf, "tw0.6") == 0)
 			{
 				m_aProtocolEnabled[PROTOCOL_TW6_IPV6] = true;
 				m_aProtocolEnabled[PROTOCOL_TW6_IPV4] = true;
-			}
-			else if(str_comp(aBuf, "tw0.7") == 0)
-			{
-				m_aProtocolEnabled[PROTOCOL_TW7_IPV6] = true;
-				m_aProtocolEnabled[PROTOCOL_TW7_IPV4] = true;
 			}
 			else if(!ProtocolFromString(&Protocol, aBuf))
 			{
@@ -721,7 +684,7 @@ void CRegister::OnShutdown()
 	}
 }
 
-IRegister *CreateRegister(CConfig *pConfig, IConsole *pConsole, IEngine *pEngine, int ServerPort, unsigned SixupSecurityToken)
+IRegister *CreateRegister(CConfig *pConfig, IConsole *pConsole, IEngine *pEngine, int ServerPort)
 {
-	return new CRegister(pConfig, pConsole, pEngine, ServerPort, SixupSecurityToken);
+	return new CRegister(pConfig, pConsole, pEngine, ServerPort);
 }

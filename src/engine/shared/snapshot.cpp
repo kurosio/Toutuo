@@ -8,7 +8,6 @@
 #include <cstdlib>
 
 #include <base/system.h>
-#include <game/generated/protocolglue.h>
 
 // CSnapshot
 
@@ -535,11 +534,10 @@ CSnapshotBuilder::CSnapshotBuilder()
 	m_NumExtendedItemTypes = 0;
 }
 
-void CSnapshotBuilder::Init(bool Sixup)
+void CSnapshotBuilder::Init()
 {
 	m_DataSize = 0;
 	m_NumItems = 0;
-	m_Sixup = Sixup;
 
 	for(int i = 0; i < m_NumExtendedItemTypes; i++)
 	{
@@ -631,17 +629,6 @@ void *CSnapshotBuilder::NewItem(int Type, int ID, int Size)
 	}
 
 	CSnapshotItem *pObj = (CSnapshotItem *)(m_aData + m_DataSize);
-
-	if(m_Sixup && !Extended)
-	{
-		if(Type >= 0)
-			Type = Obj_SixToSeven(Type);
-		else
-			Type *= -1;
-
-		if(Type < 0)
-			return pObj;
-	}
 
 	mem_zero(pObj, sizeof(CSnapshotItem) + Size);
 	pObj->m_TypeAndID = (Type << 16) | ID;

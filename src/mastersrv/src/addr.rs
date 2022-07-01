@@ -41,7 +41,7 @@ pub struct UnknownProtocol;
 
 impl fmt::Display for UnknownProtocol {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        "protocol must be one of tw-0.5+udp, tw-0.6+udp or tw-0.7+udp".fmt(f)
+        "protocol must be one of tw-0.5+udp or tw-0.6+udp".fmt(f)
     }
 }
 
@@ -52,7 +52,6 @@ impl FromStr for Protocol {
         Ok(match s {
             "tw-0.5+udp" => V5,
             "tw-0.6+udp" => V6,
-            "tw-0.7+udp" => V7,
             _ => return Err(UnknownProtocol),
         })
     }
@@ -73,7 +72,7 @@ impl<'de> serde::de::Visitor<'de> for ProtocolVisitor {
     type Value = Protocol;
 
     fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str("one of \"tw-0.5+udp\", \"tw-0.6+udp\" and \"tw-0.7+udp\"")
+        f.write_str("one of \"tw-0.5+udp\" and \"tw-0.6+udp\"")
     }
     fn visit_str<E: serde::de::Error>(self, v: &str) -> Result<Protocol, E> {
         let invalid_value = || E::invalid_value(serde::de::Unexpected::Str(v), &self);
@@ -96,7 +95,6 @@ impl Protocol {
         match self {
             V5 => "tw-0.5+udp",
             V6 => "tw-0.6+udp",
-            V7 => "tw-0.7+udp",
         }
     }
 }
