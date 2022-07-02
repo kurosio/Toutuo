@@ -1338,23 +1338,6 @@ void CServer::UpdateClientRconCommands()
 	}
 }
 
-static inline int MsgFromSixup(int Msg, bool System)
-{
-	if(System)
-	{
-		if(Msg == NETMSG_INFO)
-			;
-		else if(Msg >= 14 && Msg <= 15)
-			Msg += 11;
-		else if(Msg >= 18 && Msg <= 28)
-			Msg = NETMSG_READY + Msg - 18;
-		else if(Msg < OFFSET_UUID)
-			return -1;
-	}
-
-	return Msg;
-}
-
 void CServer::ProcessClientPacket(CNetChunk *pPacket)
 {
 	int ClientID = pPacket->m_ClientID;
