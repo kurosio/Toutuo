@@ -723,7 +723,7 @@ void CGameContext::OnPreTickTeehistorian()
 	if(!m_TeeHistorianActive)
 		return;
 
-	auto *pController = ((CGameControllerDDRace *)m_pController);
+	// auto *pController = ((CGameControllerDDRace *)m_pController); // unused
 	for(int i = 0; i < MAX_CLIENTS; i++)
 	{
 		m_TeeHistorian.RecordPlayerTeam(i, 0);
@@ -1232,6 +1232,7 @@ void CGameContext::OnClientEnter(int ClientID)
 	m_aPlayerHasInput[ClientID] = false;
 
 	// new info for others
+	/* never used
 	protocol7::CNetMsg_Sv_ClientInfo NewClientInfoMsg;
 	NewClientInfoMsg.m_ClientID = ClientID;
 	NewClientInfoMsg.m_Local = 0;
@@ -1240,6 +1241,7 @@ void CGameContext::OnClientEnter(int ClientID)
 	NewClientInfoMsg.m_pClan = Server()->ClientClan(ClientID);
 	NewClientInfoMsg.m_Country = Server()->ClientCountry(ClientID);
 	NewClientInfoMsg.m_Silent = false;
+	*/
 
 	for(int p = 0; p < 6; p++)
 	{
@@ -1468,7 +1470,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				dbg_msg("hack", "bot detected, cid=%d", ClientID);
 				return;
 			}
-			int Team = pMsg->m_Team;
+			// int Team = pMsg->m_Team; // unused
 
 			// trim right and set maximum length to 256 utf8-characters
 			int Length = 0;
