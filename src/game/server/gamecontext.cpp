@@ -1227,7 +1227,7 @@ void CGameContext::OnClientEnter(int ClientID)
 
 	Server()->ExpireServerInfo();
 
-	CPlayer *pNewPlayer = m_apPlayers[ClientID];
+	// CPlayer *pNewPlayer = m_apPlayers[ClientID]; // unused
 	mem_zero(&m_aLastPlayerInput[ClientID], sizeof(m_aLastPlayerInput[ClientID]));
 	m_aPlayerHasInput[ClientID] = false;
 
