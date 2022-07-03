@@ -2684,7 +2684,7 @@ foreach(target ${TARGETS_LINK})
   if(TARGET_OS STREQUAL "mac")
     target_link_libraries(${target} -stdlib=libc++)
     target_link_libraries(${target} "-framework SystemConfiguration") # Required by curl 7.79.0
-    if(target MATCHES TARGET_CLIENT)
+    if(${target} MATCHES ${TARGET_CLIENT})
       target_link_libraries(${target} "-framework SDL2")
     endif()
   endif()
