@@ -2380,7 +2380,6 @@ set(CPACK_SOURCE_FILES
   src/
   storage.cfg
   ubsan.supp
-  valgrind.supp
 )
 set(CPACK_SOURCE_IGNORE_FILES
   "\\\\.pyc$"
