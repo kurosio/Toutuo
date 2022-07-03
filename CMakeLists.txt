@@ -2191,7 +2191,6 @@ if(GTEST_FOUND OR DOWNLOAD_GTEST)
     os.cpp
     packer.cpp
     prng.cpp
-    score.cpp
     secure_random.cpp
     serverbrowser.cpp
     serverinfo.cpp
@@ -2685,6 +2684,9 @@ foreach(target ${TARGETS_LINK})
   if(TARGET_OS STREQUAL "mac")
     target_link_libraries(${target} -stdlib=libc++)
     target_link_libraries(${target} "-framework SystemConfiguration") # Required by curl 7.79.0
+    if(target MATCHES TARGET_CLIENT)
+      target_link_libraries(${target} "-framework SDL2")
+    endif()
   endif()
   if((MINGW OR TARGET_OS STREQUAL "linux") AND PREFER_BUNDLED_LIBS)
     # Statically link the standard libraries with on MinGW/Linux so we don't
