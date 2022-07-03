@@ -11,6 +11,7 @@
 #include <engine/shared/config.h>
 
 #include <game/generated/client_data.h>
+#include <game/generated/client_data7.h>
 #include <game/generated/protocol.h>
 
 #include <game/mapitems.h>
@@ -78,6 +79,13 @@ void CRenderTools::SelectSprite(int Id, int Flags, int sx, int sy)
 	if(Id < 0 || Id >= g_pData->m_NumSprites)
 		return;
 	SelectSprite(&g_pData->m_aSprites[Id], Flags, sx, sy);
+}
+
+void CRenderTools::GetSpriteScale(client_data7::CDataSprite *pSprite, float &ScaleX, float &ScaleY)
+{
+	int w = pSprite->m_W;
+	int h = pSprite->m_H;
+	GetSpriteScaleImpl(w, h, ScaleX, ScaleY);
 }
 
 void CRenderTools::GetSpriteScale(struct CDataSprite *pSprite, float &ScaleX, float &ScaleY)

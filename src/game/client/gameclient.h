@@ -607,6 +607,16 @@ public:
 		IGraphics::CTextureHandle m_SpriteFlagBlue;
 		IGraphics::CTextureHandle m_SpriteFlagRed;
 
+		// ninja bar (0.7)
+		IGraphics::CTextureHandle m_SpriteNinjaBarFullLeft;
+		IGraphics::CTextureHandle m_SpriteNinjaBarFull;
+		IGraphics::CTextureHandle m_SpriteNinjaBarEmpty;
+		IGraphics::CTextureHandle m_SpriteNinjaBarEmptyRight;
+
+		bool IsSixup()
+		{
+			return m_SpriteNinjaBarFullLeft.IsValid();
+		}
 	};
 
 	SClientGameSkin m_GameSkin;

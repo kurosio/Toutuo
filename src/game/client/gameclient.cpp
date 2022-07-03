@@ -19,6 +19,7 @@
 #include <engine/updater.h>
 
 #include <game/generated/client_data.h>
+#include <game/generated/client_data7.h>
 #include <game/generated/protocol.h>
 
 #include <base/math.h>
@@ -2745,6 +2746,14 @@ void CGameClient::LoadGameSkin(const char *pPath, bool AsDir)
 		Graphics()->UnloadTexture(&m_GameSkin.m_SpriteFlagBlue);
 		Graphics()->UnloadTexture(&m_GameSkin.m_SpriteFlagRed);
 
+		if(m_GameSkin.IsSixup())
+		{
+			Graphics()->UnloadTexture(&m_GameSkin.m_SpriteNinjaBarFullLeft);
+			Graphics()->UnloadTexture(&m_GameSkin.m_SpriteNinjaBarFull);
+			Graphics()->UnloadTexture(&m_GameSkin.m_SpriteNinjaBarEmpty);
+			Graphics()->UnloadTexture(&m_GameSkin.m_SpriteNinjaBarEmptyRight);
+		}
+
 		m_GameSkinLoaded = false;
 	}
 
@@ -2881,6 +2890,18 @@ void CGameClient::LoadGameSkin(const char *pPath, bool AsDir)
 		// flags
 		m_GameSkin.m_SpriteFlagBlue = Graphics()->LoadSpriteTexture(ImgInfo, &g_pData->m_aSprites[SPRITE_FLAG_BLUE]);
 		m_GameSkin.m_SpriteFlagRed = Graphics()->LoadSpriteTexture(ImgInfo, &g_pData->m_aSprites[SPRITE_FLAG_RED]);
+
+		// ninja bar (0.7)
+		if(!Graphics()->IsSpriteTextureFullyTransparent(ImgInfo, &client_data7::g_pData->m_aSprites[client_data7::SPRITE_NINJA_BAR_FULL_LEFT]) ||
+			!Graphics()->IsSpriteTextureFullyTransparent(ImgInfo, &client_data7::g_pData->m_aSprites[client_data7::SPRITE_NINJA_BAR_FULL]) ||
+			!Graphics()->IsSpriteTextureFullyTransparent(ImgInfo, &client_data7::g_pData->m_aSprites[client_data7::SPRITE_NINJA_BAR_EMPTY]) ||
+			!Graphics()->IsSpriteTextureFullyTransparent(ImgInfo, &client_data7::g_pData->m_aSprites[client_data7::SPRITE_NINJA_BAR_EMPTY_RIGHT]))
+		{
+			m_GameSkin.m_SpriteNinjaBarFullLeft = Graphics()->LoadSpriteTexture(ImgInfo, &client_data7::g_pData->m_aSprites[client_data7::SPRITE_NINJA_BAR_FULL_LEFT]);
+			m_GameSkin.m_SpriteNinjaBarFull = Graphics()->LoadSpriteTexture(ImgInfo, &client_data7::g_pData->m_aSprites[client_data7::SPRITE_NINJA_BAR_FULL]);
+			m_GameSkin.m_SpriteNinjaBarEmpty = Graphics()->LoadSpriteTexture(ImgInfo, &client_data7::g_pData->m_aSprites[client_data7::SPRITE_NINJA_BAR_EMPTY]);
+			m_GameSkin.m_SpriteNinjaBarEmptyRight = Graphics()->LoadSpriteTexture(ImgInfo, &client_data7::g_pData->m_aSprites[client_data7::SPRITE_NINJA_BAR_EMPTY_RIGHT]);
+		}
 
 		m_GameSkinLoaded = true;
 

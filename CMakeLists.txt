@@ -1552,13 +1552,7 @@ foreach(datafile ${DATA})
   file(MAKE_DIRECTORY ${DESTINATION})
   file(COPY ${datafile} DESTINATION ${DESTINATION})
 endforeach()
-set(INTEGRATION_TEST_COPY_FILES
-  lsan.supp
-  memcheck.supp
-  ubsan.supp
-  valgrind.supp
-  scripts/integration_test.sh
-)
+
 set(COPY_FILES
   ${CURL_COPY_FILES}
   ${FREETYPE_COPY_FILES}
@@ -1571,7 +1565,6 @@ set(COPY_FILES
   ${DISCORDSDK_COPY_FILES}
   ${VULKAN_COPY_FILES}
   ${EXCEPTION_HANDLING_COPY_FILES}
-  ${INTEGRATION_TEST_COPY_FILES}
 )
 file(COPY ${COPY_FILES} DESTINATION .)
 
@@ -1591,6 +1584,35 @@ function(generate_source output_file script_parameter)
       datasrc/content.py
       datasrc/datatypes.py
       datasrc/network.py
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  )
+endfunction()
+
+function(generate_source7 output_file script_parameter)
+  add_custom_command(OUTPUT ${output_file}
+    COMMAND ${PYTHON_EXECUTABLE} -m datasrc.seven.compile ${script_parameter}
+      > "${PROJECT_BINARY_DIR}/${output_file}"
+    DEPENDS
+      datasrc/seven/compile.py
+      datasrc/seven/content.py
+      datasrc/seven/datatypes.py
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  )
+endfunction()
+
+function(generate_maps output_file script_parameter)
+  add_custom_command(OUTPUT ${output_file}
+    COMMAND ${PYTHON_EXECUTABLE} datasrc/crosscompile.py ${script_parameter}
+      > "${PROJECT_BINARY_DIR}/${output_file}"
+    DEPENDS
+      datasrc/crosscompile.py
+      datasrc/compile.py
+      datasrc/content.py
+      datasrc/datatypes.py
+      datasrc/network.py
+      datasrc/seven/compile.py
+      datasrc/seven/content.py
+      datasrc/seven/datatypes.py
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
   )
 endfunction()
@@ -1624,6 +1646,9 @@ generate_source("src/game/generated/protocol.cpp" "network_source")
 generate_source("src/game/generated/protocol.h" "network_header")
 generate_source("src/game/generated/server_data.cpp" "server_content_source")
 generate_source("src/game/generated/server_data.h" "server_content_header")
+
+generate_source7("src/game/generated/client_data7.cpp" "client_content_source")
+generate_source7("src/game/generated/client_data7.h" "client_content_header")
 
 add_custom_command(OUTPUT "src/game/generated/wordlist.h"
   COMMAND ${PYTHON_EXECUTABLE} scripts/wordlist.py > ${PROJECT_BINARY_DIR}/src/game/generated/wordlist.h
@@ -1847,7 +1872,7 @@ if(CLIENT)
   file(GLOB_RECURSE ENGINE_CLIENT "src/engine/client/*.cpp" "src/engine/client/*.h")
   file(GLOB_RECURSE GAME_CLIENT "src/game/client/*.cpp" "src/game/client/*.h")
   file(GLOB GAME_EDITOR "src/game/editor/*.cpp" "src/game/editor/*.h")
-  set(GAME_GENERATED_CLIENT src/game/generated/checksum.cpp src/game/generated/client_data.cpp src/game/generated/client_data.h)
+  set(GAME_GENERATED_CLIENT src/game/generated/checksum.cpp src/game/generated/client_data.cpp src/game/generated/client_data.h src/game/generated/client_data7.cpp src/game/generated/client_data7.h)
   set(CLIENT_SRC ${ENGINE_CLIENT} ${PLATFORM_CLIENT} ${GAME_CLIENT} ${GAME_EDITOR} ${GAME_GENERATED_CLIENT})
   set(DEPS_CLIENT ${DEPS} ${GLEW_DEP} ${WAVPACK_DEP})
 
@@ -2223,13 +2248,6 @@ if(GTEST_FOUND OR DOWNLOAD_GTEST)
     USES_TERMINAL
   )
 endif()
-
-add_custom_target(run_integration_tests
-  COMMAND ${PROJECT_BINARY_DIR}/integration_test.sh ${INTEGRATIONTESTRUNNER_ARGS}
-  COMMENT Running integration tests
-  DEPENDS ${TARGET_CLIENT} ${TARGET_SERVER}
-  USES_TERMINAL
-)
 
 ########################################################################
 # INSTALLATION

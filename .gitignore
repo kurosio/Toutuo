@@ -79,7 +79,6 @@ generated
 target
 
 /build*
-/integration_test/*
 
 # IDE project files
 .cache

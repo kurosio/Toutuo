@@ -1,1 +1,0 @@
-Maps in this directory are created using the map_convert_07 tool for

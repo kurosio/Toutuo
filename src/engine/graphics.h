@@ -203,6 +203,10 @@ typedef STWGraphicGPU TTWGraphicsGPUList;
 
 typedef std::function<void(void *)> WINDOW_RESIZE_FUNC;
 
+namespace client_data7 {
+struct CDataSprite; // NOLINT(bugprone-forward-declaration-namespace)
+}
+
 typedef std::function<bool(uint32_t &Width, uint32_t &Height, uint32_t &Format, std::vector<uint8_t> &vDstData)> TGLBackendReadPresentedImageData;
 
 class IGraphics : public IInterface
@@ -311,9 +315,11 @@ public:
 	virtual bool UpdateTextTexture(CTextureHandle TextureID, int x, int y, int Width, int Height, const void *pData) = 0;
 
 	virtual CTextureHandle LoadSpriteTexture(CImageInfo &FromImageInfo, struct CDataSprite *pSprite) = 0;
+	virtual CTextureHandle LoadSpriteTexture(CImageInfo &FromImageInfo, struct client_data7::CDataSprite *pSprite) = 0;
 
 	virtual bool IsImageSubFullyTransparent(CImageInfo &FromImageInfo, int x, int y, int w, int h) = 0;
-	
+	virtual bool IsSpriteTextureFullyTransparent(CImageInfo &FromImageInfo, struct client_data7::CDataSprite *pSprite) = 0;
+
 	virtual void FlushVertices(bool KeepVertices = false) = 0;
 	virtual void FlushVerticesTex3D() = 0;
 
