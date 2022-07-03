@@ -97,10 +97,11 @@ class CChat : public CComponent
 	{
 		const char *m_pName;
 		const char *m_pParams;
+		const char* m_pHelp;
 
 		CCommand() {}
-		CCommand(const char *pName, const char *pParams) :
-			m_pName(pName), m_pParams(pParams)
+		CCommand(const char *pName, const char *pParams, const char* pHelp) :
+			m_pName(pName), m_pParams(pParams), m_pHelp(pHelp)
 		{
 		}
 
@@ -110,6 +111,7 @@ class CChat : public CComponent
 	};
 
 	std::vector<CCommand> m_vCommands;
+	std::vector<CCommand> m_vDDNetCommands;
 	bool m_ReverseTAB;
 
 	struct CHistoryEntry
@@ -153,7 +155,7 @@ public:
 	void DisableMode();
 	void Say(int Team, const char *pLine);
 	void SayChat(const char *pLine);
-	void RegisterCommand(const char *pName, const char *pParams, int flags, const char *pHelp);
+	void RegisterCommand(const char *pName, const char *pParams, const char *pHelp, bool dd = false);
 	void Echo(const char *pString);
 
 	virtual void OnWindowResize() override;
