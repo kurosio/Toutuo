@@ -720,7 +720,7 @@ void CGameContext::OnPreTickTeehistorian()
 	if(!m_TeeHistorianActive)
 		return;
 
-	auto *pController = ((CGameControllerDDRace *)m_pController);
+	//auto *pController = ((CGameControllerDDRace *)m_pController);
 	for(int i = 0; i < MAX_CLIENTS; i++)
 	{
 		m_TeeHistorian.RecordPlayerTeam(i, 0);
@@ -1224,7 +1224,7 @@ void CGameContext::OnClientEnter(int ClientID)
 
 	Server()->ExpireServerInfo();
 
-	CPlayer *pNewPlayer = m_apPlayers[ClientID];
+	//CPlayer *pNewPlayer = m_apPlayers[ClientID];
 	mem_zero(&m_aLastPlayerInput[ClientID], sizeof(m_aLastPlayerInput[ClientID]));
 	m_aPlayerHasInput[ClientID] = false;
 
@@ -1442,7 +1442,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				dbg_msg("hack", "bot detected, cid=%d", ClientID);
 				return;
 			}
-			int Team = pMsg->m_Team;
+			//int Team = pMsg->m_Team;
 
 			// trim right and set maximum length to 256 utf8-characters
 			int Length = 0;

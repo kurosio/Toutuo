@@ -621,10 +621,10 @@ void *CSnapshotBuilder::NewItem(int Type, int ID, int Size)
 		return 0;
 	}
 
-	bool Extended = false;
+	//bool Extended = false;
 	if(Type >= OFFSET_UUID)
 	{
-		Extended = true;
+		//Extended = true; unused
 		Type = GetTypeFromIndex(GetExtendedItemTypeIndex(Type));
 	}
 
