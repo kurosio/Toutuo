@@ -684,17 +684,6 @@ fn handle_register(
     let connless_request_token_7 = match register.address.protocol {
         Protocol::V5 => None,
         Protocol::V6 => None,
-        Protocol::V7 => {
-            let token_hex = register
-                .connless_request_token
-                .as_ref()
-                .ok_or_else(|| "registering with tw-0.7+udp:// requires header Connless-Token")?;
-            let mut token = [0; 4];
-            hex::decode_to_slice(token_hex.as_bytes(), &mut token).map_err(|e| {
-                RegisterError::new(format!("invalid hex in Connless-Request-Token: {}", e))
-            })?;
-            Some(token)
-        }
     };
 
     let addr = register.address.with_ip(remote_addr);

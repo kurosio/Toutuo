@@ -69,7 +69,6 @@ class CGameContext : public IGameServer
 	IAntibot *m_pAntibot;
 	CLayers m_Layers;
 	CCollision m_Collision;
-	protocol7::CNetObjHandler m_NetObjHandler7;
 	CNetObjHandler m_NetObjHandler;
 	CTuningParams m_Tuning;
 	CTuningParams m_aTuningList[NUM_TUNEZONES];
@@ -260,7 +259,7 @@ public:
 	void OnClientPredictedInput(int ClientID, void *pInput) override;
 	void OnClientPredictedEarlyInput(int ClientID, void *pInput) override;
 
-	void OnClientEngineJoin(int ClientID, bool Sixup) override;
+	void OnClientEngineJoin(int ClientID) override;
 	void OnClientEngineDrop(int ClientID, const char *pReason) override;
 
 	bool IsClientReady(int ClientID) const override;

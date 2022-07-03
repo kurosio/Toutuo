@@ -23,6 +23,6 @@ public:
 	virtual void OnShutdown() = 0;
 };
 
-IRegister *CreateRegister(CConfig *pConfig, IConsole *pConsole, IEngine *pEngine, int ServerPort, unsigned SixupSecurityToken);
+IRegister *CreateRegister(CConfig *pConfig, IConsole *pConsole, IEngine *pEngine, int ServerPort);
 
 #endif

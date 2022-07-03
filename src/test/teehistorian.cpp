@@ -446,8 +446,6 @@ TEST_F(TeeHistorian, JoinLeave)
 		0x59, 0x23, 0x9b, 0x05, 0x05, 0x40, 0x31, 0x8d,
 		0xbe, 0xa4, 0x9a, 0xa1, 0xe8, 0x0e, 0x7d, 0x2b,
 		0x01,
-		// (JOINVER7) cid=7
-		0x07,
 		// JOIN cid=7
 		0x47, 0x07,
 		// LEAVE cid=6 reason="too many pancakes"
@@ -457,7 +455,6 @@ TEST_F(TeeHistorian, JoinLeave)
 		0x40, // FINISH
 	};
 	m_TH.RecordPlayerJoin(6, CTeeHistorian::PROTOCOL_6);
-	m_TH.RecordPlayerJoin(7, CTeeHistorian::PROTOCOL_7);
 	m_TH.RecordPlayerDrop(6, "too many pancakes");
 	Finish();
 	Expect(EXPECTED, sizeof(EXPECTED));

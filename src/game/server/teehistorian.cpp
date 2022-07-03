@@ -480,7 +480,7 @@ void CTeeHistorian::RecordPlayerMessage(int ClientID, const void *pMsg, int MsgS
 
 void CTeeHistorian::RecordPlayerJoin(int ClientID, int Protocol)
 {
-	dbg_assert(Protocol == PROTOCOL_6 || Protocol == PROTOCOL_7, "invalid version");
+	dbg_assert(Protocol == PROTOCOL_6, "invalid version");
 	EnsureTickWritten();
 
 	{
@@ -489,9 +489,9 @@ void CTeeHistorian::RecordPlayerJoin(int ClientID, int Protocol)
 		Buffer.AddInt(ClientID);
 		if(m_Debug)
 		{
-			dbg_msg("teehistorian", "joinver%d cid=%d", Protocol == PROTOCOL_6 ? 6 : 7, ClientID);
+			dbg_msg("teehistorian", "joinver%d cid=%d", 6, ClientID);
 		}
-		CUuid Uuid = Protocol == PROTOCOL_6 ? UUID_TEEHISTORIAN_JOINVER6 : UUID_TEEHISTORIAN_JOINVER7;
+		CUuid Uuid = UUID_TEEHISTORIAN_JOINVER6;
 		WriteExtra(Uuid, Buffer.Data(), Buffer.Size());
 	}
 

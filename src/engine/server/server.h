@@ -314,7 +314,7 @@ public:
 
 	void DoSnapshot();
 
-	static int NewClientCallback(int ClientID, void *pUser, bool Sixup);
+	static int NewClientCallback(int ClientID, void *pUser);
 	static int NewClientNoAuthCallback(int ClientID, void *pUser);
 	static int DelClientCallback(int ClientID, const char *pReason, void *pUser);
 
@@ -356,7 +356,6 @@ public:
 		void Clear();
 	};
 	CCache m_aServerInfoCache[3 * 2];
-	CCache m_aSixupServerInfoCache[2];
 	bool m_ServerInfoNeedsUpdate;
 
 	void ExpireServerInfo() override;

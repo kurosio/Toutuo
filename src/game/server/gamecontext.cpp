@@ -24,9 +24,6 @@
 #include <game/mapitems.h>
 #include <game/version.h>
 
-#include <game/generated/protocol7.h>
-#include <game/generated/protocolglue.h>
-
 #include "entities/character.h"
 #include "gamemodes/DDRace.h"
 #include "player.h"
@@ -723,7 +720,7 @@ void CGameContext::OnPreTickTeehistorian()
 	if(!m_TeeHistorianActive)
 		return;
 
-	auto *pController = ((CGameControllerDDRace *)m_pController);
+	//auto *pController = ((CGameControllerDDRace *)m_pController);
 	for(int i = 0; i < MAX_CLIENTS; i++)
 	{
 		m_TeeHistorian.RecordPlayerTeam(i, 0);
@@ -1227,26 +1224,9 @@ void CGameContext::OnClientEnter(int ClientID)
 
 	Server()->ExpireServerInfo();
 
-	CPlayer *pNewPlayer = m_apPlayers[ClientID];
+	//CPlayer *pNewPlayer = m_apPlayers[ClientID];
 	mem_zero(&m_aLastPlayerInput[ClientID], sizeof(m_aLastPlayerInput[ClientID]));
 	m_aPlayerHasInput[ClientID] = false;
-
-	// new info for others
-	protocol7::CNetMsg_Sv_ClientInfo NewClientInfoMsg;
-	NewClientInfoMsg.m_ClientID = ClientID;
-	NewClientInfoMsg.m_Local = 0;
-	NewClientInfoMsg.m_Team = pNewPlayer->GetTeam();
-	NewClientInfoMsg.m_pName = Server()->ClientName(ClientID);
-	NewClientInfoMsg.m_pClan = Server()->ClientClan(ClientID);
-	NewClientInfoMsg.m_Country = Server()->ClientCountry(ClientID);
-	NewClientInfoMsg.m_Silent = false;
-
-	for(int p = 0; p < 6; p++)
-	{
-		NewClientInfoMsg.m_apSkinPartNames[p] = pNewPlayer->m_TeeInfos.m_apSkinPartNames[p];
-		NewClientInfoMsg.m_aUseCustomColors[p] = pNewPlayer->m_TeeInfos.m_aUseCustomColors[p];
-		NewClientInfoMsg.m_aSkinPartColors[p] = pNewPlayer->m_TeeInfos.m_aSkinPartColors[p];
-	}
 
 	// initial chat delay
 	if(g_Config.m_SvChatInitialDelay != 0 && m_apPlayers[ClientID]->m_JoinTick > m_NonEmptySince + 10 * Server()->TickSpeed())
@@ -1337,16 +1317,10 @@ void CGameContext::OnClientDrop(int ClientID, const char *pReason)
 			pPlayer->m_LastWhisperTo = -1;
 	}
 
-	protocol7::CNetMsg_Sv_ClientDrop Msg;
-	Msg.m_ClientID = ClientID;
-	Msg.m_pReason = pReason;
-	Msg.m_Silent = false;
-	Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, -1);
-
 	Server()->ExpireServerInfo();
 }
 
-void CGameContext::OnClientEngineJoin(int ClientID, bool Sixup)
+void CGameContext::OnClientEngineJoin(int ClientID)
 {
 	if(m_TeeHistorianActive)
 	{
@@ -1468,7 +1442,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				dbg_msg("hack", "bot detected, cid=%d", ClientID);
 				return;
 			}
-			int Team = pMsg->m_Team;
+			//int Team = pMsg->m_Team;
 
 			// trim right and set maximum length to 256 utf8-characters
 			int Length = 0;

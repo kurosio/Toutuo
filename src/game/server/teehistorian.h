@@ -41,7 +41,6 @@ public:
 	enum
 	{
 		PROTOCOL_6 = 1,
-		PROTOCOL_7,
 	};
 
 	CTeeHistorian();

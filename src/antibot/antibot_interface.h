@@ -27,7 +27,7 @@ ANTIBOTAPI void AntibotOnDirectInput(int ClientID);
 ANTIBOTAPI void AntibotOnCharacterTick(int ClientID);
 ANTIBOTAPI void AntibotOnHookAttach(int ClientID, bool Player);
 ANTIBOTAPI void AntibotOnEngineTick(void);
-ANTIBOTAPI void AntibotOnEngineClientJoin(int ClientID, bool Sixup);
+ANTIBOTAPI void AntibotOnEngineClientJoin(int ClientID);
 ANTIBOTAPI void AntibotOnEngineClientDrop(int ClientID, const char *pReason);
 // Returns true if the message shouldn't be processed by the server.
 ANTIBOTAPI bool AntibotOnEngineClientMessage(int ClientID, const void *pData, int Size, int Flags);

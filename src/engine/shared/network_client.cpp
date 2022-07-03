@@ -84,8 +84,7 @@ int CNetClient::Recv(CNetChunk *pChunk)
 			continue;
 		}
 
-		bool Sixup = false;
-		if(CNetBase::UnpackPacket(pData, Bytes, &m_RecvUnpacker.m_Data, Sixup) == 0)
+		if(CNetBase::UnpackPacket(pData, Bytes, &m_RecvUnpacker.m_Data) == 0)
 		{
 			if(m_RecvUnpacker.m_Data.m_Flags & NET_PACKETFLAG_CONNLESS)
 			{
