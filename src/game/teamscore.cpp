@@ -48,7 +48,7 @@ void CTeamsCore::Reset()
 		//if(g_Config.m_SvTeam == SV_TEAM_FORCED_SOLO)
 		//	m_Team[i] = i;
 		//else
-			m_Team[i] = TEAM_FLOCK;
+		m_Team[i] = TEAM_FLOCK;
 		m_IsSolo[i] = false;
 	}
 }
