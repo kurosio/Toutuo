@@ -18,6 +18,8 @@
 
 #include <chrono>
 
+#include <game/version.h>
+
 using namespace std::chrono_literals;
 
 void CMenus::RenderStartMenu(CUIRect MainView)
@@ -276,7 +278,11 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	}
 #endif
 
-	UI()->DoLabel(&CurVersion, GAME_RELEASE_VERSION, 14.0f, TEXTALIGN_RIGHT);
+	{
+		char aBuf[128];
+		str_format(aBuf, sizeof(aBuf), "%s: %s | %s: %s", GAME_NAME, GAME_RELEASE_VERSION, MMO_NAME, MMO_CLIENT_VERSION);
+		UI()->DoLabel(&CurVersion, aBuf, 14.0f, TEXTALIGN_RIGHT);
+	}
 
 	if(NewPage != -1)
 	{
