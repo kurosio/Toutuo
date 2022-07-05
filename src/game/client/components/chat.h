@@ -97,10 +97,10 @@ class CChat : public CComponent
 	{
 		const char *m_pName;
 		const char *m_pParams;
-		const char* m_pHelp;
+		const char *m_pHelp;
 
 		CCommand() {}
-		CCommand(const char *pName, const char *pParams, const char* pHelp) :
+		CCommand(const char *pName, const char *pParams, const char *pHelp) :
 			m_pName(pName), m_pParams(pParams), m_pHelp(pHelp)
 		{
 		}
