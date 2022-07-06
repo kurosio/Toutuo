@@ -1,3 +1,3 @@
 [submodule "libraries"]
 	path = libraries
-	url = https://github.com/kurosio/patutora-libs
+	url = https://github.com/kurosio/patutora-libs.git

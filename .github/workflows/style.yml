@@ -35,7 +35,7 @@ jobs:
     - name: Check dilated images
       run: scripts/check_dilate.sh release data
     - name: Shellcheck
-      run: find . -type f -name '*.sh' -print0 | xargs -0 shellcheck
+      run: find . -type f \( -name '*.sh' ! -name "clang-format-all.sh" ! -path "./libraries/*" \) -print0 | xargs -0 shellcheck
     - name: Check log error case
       run: |
         if grep -Eqr '(msg|Print).*\(.*"[Ee]rror:' src/;

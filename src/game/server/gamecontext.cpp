@@ -1705,7 +1705,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 					return;
 				}
 				str_format(aChatmsg, sizeof(aChatmsg), "'%s' called for vote to kick '%s' (%s)", Server()->ClientName(ClientID), Server()->ClientName(KickID), aReason);
-			
+
 				if(!g_Config.m_SvVoteKickBantime)
 				{
 					str_format(aCmd, sizeof(aCmd), "kick %d Kicked by vote", KickID);

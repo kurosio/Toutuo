@@ -117,7 +117,7 @@ class CRegister : public IRegister
 	IConsole *m_pConsole;
 	IEngine *m_pEngine;
 	int m_ServerPort;
-	char m_aConnlessTokenHex[16];
+	//	char m_aConnlessTokenHex[16]; unused
 
 	std::shared_ptr<CGlobal> m_pGlobal = std::make_shared<CGlobal>();
 	bool m_aProtocolEnabled[NUM_PROTOCOLS] = {true, true};

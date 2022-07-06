@@ -30,17 +30,58 @@ CChat::CChat()
 		Line.m_QuadContainerIndex = -1;
 	}
 
-#define CHAT_COMMAND(name, params, flags, callback, userdata, help) RegisterCommand(name, params, flags, help);
-#include <game/ddracechat.h>
+#ifndef DDCHAT_COMMAND
+#define DDCHAT_COMMAND(name, params, help) RegisterCommand(name, params, help, true);
+#endif
+
+	DDCHAT_COMMAND("credits", "", "Shows the credits of the DDNet mod")
+	DDCHAT_COMMAND("rules", "", "Shows the server rules")
+	DDCHAT_COMMAND("emote", "?s[emote name] i[duration in seconds]", "Sets your tee's eye emote")
+	DDCHAT_COMMAND("eyeemote", "?s['on'|'off'|'toggle']", "Toggles use of standard eye-emotes on/off, eyeemote s, where s = on for on, off for off, toggle for toggle and nothing to show current status")
+	DDCHAT_COMMAND("settings", "?s[configname]", "Shows gameplay information for this server")
+	DDCHAT_COMMAND("help", "?r[command]", "Shows help to command r, general help if left blank")
+	DDCHAT_COMMAND("info", "", "Shows info about this server")
+	DDCHAT_COMMAND("list", "?s[filter]", "List connected players with optional case-insensitive substring matching filter")
+	DDCHAT_COMMAND("me", "r[message]", "Like the famous irc command '/me says hi' will display '<yourname> says hi'")
+	DDCHAT_COMMAND("w", "s[player name] r[message]", "Whisper something to someone (private message)")
+	DDCHAT_COMMAND("whisper", "s[player name] r[message]", "Whisper something to someone (private message)")
+	DDCHAT_COMMAND("c", "r[message]", "Converse with the last person you whispered to (private message)")
+	DDCHAT_COMMAND("converse", "r[message]", "Converse with the last person you whispered to (private message)")
+	DDCHAT_COMMAND("pause", "?r[player name]", "Toggles pause")
+	DDCHAT_COMMAND("spec", "?r[player name]", "Toggles spec (if not available behaves as /pause)")
+	DDCHAT_COMMAND("pausevoted", "", "Toggles pause on the currently voted player")
+	DDCHAT_COMMAND("specvoted", "", "Toggles spec on the currently voted player")
+	DDCHAT_COMMAND("dnd", "", "Toggle Do Not Disturb (no chat and server messages)")
+	DDCHAT_COMMAND("timeout", "?s[code]", "Set timeout protection code s")
+
+	DDCHAT_COMMAND("showothers", "?i['0'|'1'|'2']", "Whether to show players from other teams or not (off by default), optional i = 0 for off, i = 1 for on, i = 2 for own team only")
+	DDCHAT_COMMAND("showall", "?i['0'|'1']", "Whether to show players at any distance (off by default), optional i = 0 for off else for on")
+	DDCHAT_COMMAND("specteam", "?i['0'|'1']", "Whether to show players from other teams when spectating (on by default), optional i = 0 for off else for on")
+	DDCHAT_COMMAND("ninjajetpack", "?i['0'|'1']", "Whether to use ninja jetpack or not. Makes jetpack look more awesome")
+	DDCHAT_COMMAND("saytime", "?r[player name]", "Privately messages someone's current time in this current running race (your time by default)")
+	DDCHAT_COMMAND("saytimeall", "", "Publicly messages everyone your current time in this current running race")
+	DDCHAT_COMMAND("time", "", "Privately shows you your current time in this current running race in the broadcast message")
+	DDCHAT_COMMAND("timer", "?s['gametimer'|'broadcast'|'both'|'none'|'cycle']", "Personal Setting of showing time in either broadcast or game/round timer, timer s, where s = broadcast for broadcast, gametimer for game/round timer, cycle for cycle, both for both, none for no timer and nothing to show current status")
+	DDCHAT_COMMAND("tp", "?r[player name]", "Teleport yourself to player or to where you are spectating if no player name is given")
+	DDCHAT_COMMAND("teleport", "?r[player name]", "Teleport yourself to player or to where you are spectating if no player name is given")
+
+	DDCHAT_COMMAND("kill", "", "Kill yourself when kill-protected during a long game (use f1, kill for regular kill)")
+
+#undef DDCHAT_COMMAND
+
 	std::sort(m_vCommands.begin(), m_vCommands.end());
+	std::sort(m_vDDNetCommands.begin(), m_vDDNetCommands.end());
 
 	m_Mode = MODE_NONE;
 	Reset();
 }
 
-void CChat::RegisterCommand(const char *pName, const char *pParams, int flags, const char *pHelp)
+void CChat::RegisterCommand(const char *pName, const char *pParams, const char *pHelp, bool dd)
 {
-	m_vCommands.emplace_back(pName, pParams);
+	if(dd)
+		m_vDDNetCommands.emplace_back(pName, pParams, pHelp);
+	else
+		m_vCommands.emplace_back(pName, pParams, pHelp);
 }
 
 void CChat::RebuildChat()
@@ -349,7 +390,10 @@ bool CChat::OnInput(IInput::CEvent Event)
 		{
 			CCommand *pCompletionCommand = 0;
 
-			const size_t NumCommands = m_vCommands.size();
+			//if(server is mmo)
+			//	const size_t NumCommands = m_vCommands.size();
+			//else
+			const size_t NumCommands = m_vDDNetCommands.size();
 
 			if(m_ReverseTAB && m_CompletionUsed)
 				m_CompletionChosen--;
@@ -376,7 +420,10 @@ bool CChat::OnInput(IInput::CEvent Event)
 					Index = (m_CompletionChosen + i) % NumCommands;
 				}
 
-				auto &Command = m_vCommands[Index];
+				//if(server is mmo)
+				//	auto &Command = m_vCommands[Index];
+				//else
+				auto &Command = m_vDDNetCommands[Index];
 
 				if(str_startswith(Command.m_pName, pCommandStart))
 				{

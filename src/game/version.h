@@ -11,3 +11,11 @@
 extern const char *GIT_SHORTREV_HASH;
 #define GAME_NAME "DDNet"
 #endif
+
+#ifndef MMO_VERSIONS
+#define MMO_VERSIONS
+#define MMO_CLIENT_VERSION "1.0"
+#define MMO_CLIENT_NUMBER 10 // for packet transaction
+#define MMO_SERVER_VERSION "1.0"
+#define MMO_NAME "Toutuo"
+#endif

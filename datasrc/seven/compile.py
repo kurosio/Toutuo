@@ -1,7 +1,6 @@
 import sys
 from .datatypes import EmitDefinition, EmitTypeDeclaration
 from . import content
-from . import network
 
 def create_enum_table(names, num):
 	lines = []

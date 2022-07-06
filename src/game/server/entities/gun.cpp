@@ -71,7 +71,7 @@ void CGun::Fire()
 	{
 		CCharacter *pTarget = pPlayersInRange[i];
 		const int &TargetTeam = pTarget->EventGroup();
-		
+
 		// If the turret is disabled for the target's team, the turret will not fire
 		if(m_Layer == LAYER_SWITCH && m_Number > 0 &&
 			!Switchers()[m_Number].m_Status[TargetTeam])
