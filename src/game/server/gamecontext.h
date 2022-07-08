@@ -298,16 +298,11 @@ private:
 	bool m_VoteWillPass;
 
 	//DDRace Console Commands
-
-	static void ConKillPlayer(IConsole::IResult *pResult, void *pUserData);
-
-	static void ConNinja(IConsole::IResult *pResult, void *pUserData);
 	static void ConEndlessHook(IConsole::IResult *pResult, void *pUserData);
 	static void ConUnEndlessHook(IConsole::IResult *pResult, void *pUserData);
 	static void ConJetpack(IConsole::IResult *pResult, void *pUserData);
 	static void ConUnJetpack(IConsole::IResult *pResult, void *pUserData);
 
-	void ModifyWeapons(IConsole::IResult *pResult, void *pUserData, int Weapon, bool Remove);
 	void MoveCharacter(int ClientID, int X, int Y, bool Raw = false);
 	static void ConGoLeft(IConsole::IResult *pResult, void *pUserData);
 	static void ConGoRight(IConsole::IResult *pResult, void *pUserData);
@@ -388,7 +383,6 @@ private:
 	void WhisperID(int ClientID, int VictimID, const char *pMessage);
 	void Converse(int ClientID, char *pStr);
 	bool IsVersionBanned(int Version);
-	void UnlockTeam(int ClientID, int Team);
 
 public:
 	CLayers *Layers() { return &m_Layers; }
@@ -406,9 +400,9 @@ public:
 	int m_VoteVictim;
 	int m_VoteEnforcer;
 
-	inline bool IsOptionVote() const { return m_VoteType == VOTE_TYPE_OPTION; }
-	inline bool IsKickVote() const { return m_VoteType == VOTE_TYPE_KICK; }
-	inline bool IsSpecVote() const { return m_VoteType == VOTE_TYPE_SPECTATE; }
+	bool IsOptionVote() const { return m_VoteType == VOTE_TYPE_OPTION; }
+	bool IsKickVote() const { return m_VoteType == VOTE_TYPE_KICK; }
+	bool IsSpecVote() const { return m_VoteType == VOTE_TYPE_SPECTATE; }
 
 	void OnSetAuthed(int ClientID, int Level) override;
 	virtual bool PlayerCollision();
