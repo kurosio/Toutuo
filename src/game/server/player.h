@@ -95,7 +95,6 @@ public:
 	int m_LastCommands[4];
 	int m_LastCommandPos;
 	int m_LastWhisperTo;
-	int m_LastInvited;
 
 	int m_SendVoteIndex;
 
@@ -103,10 +102,8 @@ public:
 	int m_PreviousDieTick;
 	int m_Score;
 	int m_JoinTick;
-	bool m_ForceBalanced;
 	int m_LastActionTick;
 	int m_TeamChangeTick;
-	bool m_SentSemicolonTip;
 
 	// network latency calculations
 	struct
@@ -187,10 +184,8 @@ public:
 	bool m_SpecTeam;
 	bool m_NinjaJetpack;
 	bool m_Afk;
-	bool m_HasFinishScore;
 
 	int m_ChatScore;
-
 	bool m_Moderating;
 
 	void UpdatePlaytime();
@@ -210,11 +205,8 @@ public:
 	void OverrideDefaultEmote(int Emote, int Tick);
 	bool CanOverrideDefaultEmote() const;
 
-	bool m_FirstPacket;
 	bool m_NotEligibleForFinish;
 	int64_t m_EligibleForFinishCheck;
-	bool m_VotedForPractice;
-	int m_SwapTargetsClientID; //Client ID of the swap target for the given player
 };
 
 #endif

@@ -47,7 +47,6 @@ void CPlayer::Reset()
 	m_SpectatorID = SPEC_FREEVIEW;
 	m_LastActionTick = Server()->Tick();
 	m_TeamChangeTick = Server()->Tick();
-	m_LastInvited = 0;
 	m_WeakHookSpawn = false;
 
 	int *pIdMap = Server()->GetIdMap(m_ClientID);
@@ -77,7 +76,6 @@ void CPlayer::Reset()
 	m_TuneZone = 0;
 	m_TuneZoneOld = m_TuneZone;
 	m_Halloween = false;
-	m_FirstPacket = true;
 
 	m_SendVoteIndex = -1;
 
@@ -113,7 +111,6 @@ void CPlayer::Reset()
 
 	m_LastPause = 0;
 	m_Score = -9999;
-	m_HasFinishScore = false;
 
 	// Variable initialized:
 	m_Last_Team = 0;
@@ -132,8 +129,6 @@ void CPlayer::Reset()
 
 	m_NotEligibleForFinish = false;
 	m_EligibleForFinishCheck = 0;
-	m_VotedForPractice = false;
-	m_SwapTargetsClientID = -1;
 }
 
 void CPlayer::Tick()
