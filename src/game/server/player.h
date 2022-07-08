@@ -8,7 +8,6 @@
 #include <engine/shared/protocol.h>
 
 #include "alloc.h"
-#include "teeinfo.h"
 
 #include <memory>
 
@@ -60,7 +59,7 @@ public:
 	void OnDisconnect();
 
 	void KillCharacter(int Weapon = WEAPON_GAME);
-	CCharacter *GetCharacter();
+	CCharacter *GetCharacter() const;
 
 	void SpectatePlayerName(const char *pName);
 
@@ -100,8 +99,6 @@ public:
 
 	int m_SendVoteIndex;
 
-	CTeeInfo m_TeeInfos;
-
 	int m_DieTick;
 	int m_PreviousDieTick;
 	int m_Score;
@@ -121,6 +118,15 @@ public:
 		int m_Min;
 		int m_Max;
 	} m_Latency;
+
+	// skin data
+	struct
+	{
+		char m_aSkinName[64];
+		int m_UseCustomColor;
+		int m_ColorBody;
+		int m_ColorFeet;
+	} m_TeeInfos;
 
 private:
 	const uint32_t m_UniqueClientID;
