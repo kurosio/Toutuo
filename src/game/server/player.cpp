@@ -12,7 +12,6 @@
 #include "gamecontroller.h"
 
 #include <game/gamecore.h>
-#include <game/teamscore.h>
 #include <game/version.h>
 
 MACRO_ALLOC_POOL_ID_IMPL(CPlayer, MAX_CLIENTS)
@@ -284,8 +283,8 @@ void CPlayer::Snap(int SnappingClient)
 #ifdef CONF_DEBUG
 	if(!g_Config.m_DbgDummies || m_ClientID < MAX_CLIENTS - g_Config.m_DbgDummies)
 #endif
-		if(!Server()->ClientIngame(m_ClientID))
-			return;
+	if(!Server()->ClientIngame(m_ClientID))
+		return;
 
 	int id = m_ClientID;
 	if(!Server()->Translate(id, SnappingClient))
