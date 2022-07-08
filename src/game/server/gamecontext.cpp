@@ -65,25 +65,22 @@ enum
 void CGameContext::Construct(int Resetting)
 {
 	m_Resetting = false;
-	m_pServer = 0;
+	m_pServer = nullptr;
+	m_pController = nullptr;
 
 	for(auto &pPlayer : m_apPlayers)
-		pPlayer = 0;
+		pPlayer = nullptr;
 
 	mem_zero(&m_aLastPlayerInput, sizeof(m_aLastPlayerInput));
 	mem_zero(&m_aPlayerHasInput, sizeof(m_aPlayerHasInput));
 
-	m_pController = 0;
 	m_aVoteCommand[0] = 0;
 	m_VoteType = VOTE_TYPE_UNKNOWN;
 	m_VoteCloseTime = 0;
-	m_pVoteOptionFirst = 0;
-	m_pVoteOptionLast = 0;
+	m_pVoteOptionFirst = nullptr;
+	m_pVoteOptionLast = nullptr;
 	m_NumVoteOptions = 0;
 	m_LastMapVote = 0;
-
-	m_SqlRandomMapResult = nullptr;
-
 	m_NumMutes = 0;
 	m_NumVoteMutes = 0;
 
@@ -164,7 +161,7 @@ CNetObj_PlayerInput CGameContext::GetLastPlayerInput(int ClientID) const
 class CCharacter *CGameContext::GetPlayerChar(int ClientID)
 {
 	if(ClientID < 0 || ClientID >= MAX_CLIENTS || !m_apPlayers[ClientID])
-		return 0;
+		return nullptr;
 	return m_apPlayers[ClientID]->GetCharacter();
 }
 
@@ -452,7 +449,7 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 		// send to the clients
 		for(int i = 0; i < Server()->MaxClients(); i++)
 		{
-			if(m_apPlayers[i] != 0)
+			if(m_apPlayers[i] != nullptr)
 			{
 				if(Team == CHAT_SPEC)
 				{
@@ -668,7 +665,7 @@ void CGameContext::SendTuningParams(int ClientID, int Zone)
 	CheckPureTuning();
 
 	CMsgPacker Msg(NETMSGTYPE_SV_TUNEPARAMS);
-	int *pParams = 0;
+	int *pParams = nullptr;
 	if(Zone == 0)
 		pParams = (int *)&m_Tuning;
 	else
@@ -790,7 +787,7 @@ void CGameContext::OnTick()
 			if(m_VoteUpdate)
 			{
 				// count votes
-				char aaBuf[MAX_CLIENTS][NETADDR_MAXSTRSIZE] = {{0}}, *pIP = NULL;
+				char aaBuf[MAX_CLIENTS][NETADDR_MAXSTRSIZE] = {{0}}, *pIP = nullptr;
 				bool SinglePlayer = true;
 				for(int i = 0; i < MAX_CLIENTS; i++)
 				{
@@ -1090,7 +1087,7 @@ struct CVoteOptionServer *CGameContext::GetVoteOption(int Index)
 		;
 
 	if(Index > 0)
-		return 0;
+		return nullptr;
 	return pCurrent;
 }
 
@@ -1136,7 +1133,7 @@ void CGameContext::ProgressVoteOptions(int ClientID)
 	// get current vote option by index
 	CVoteOptionServer *pCurrent = GetVoteOption(pPl->m_SendVoteIndex);
 
-	while(CurIndex < NumVotesToSend && pCurrent != NULL)
+	while(CurIndex < NumVotesToSend && pCurrent != nullptr)
 	{
 		switch(CurIndex)
 		{
@@ -1297,7 +1294,7 @@ void CGameContext::OnClientDrop(int ClientID, const char *pReason)
 	AbortVoteKickOnDisconnect(ClientID);
 	m_pController->OnPlayerDisconnect(m_apPlayers[ClientID], pReason);
 	delete m_apPlayers[ClientID];
-	m_apPlayers[ClientID] = 0;
+	m_apPlayers[ClientID] = nullptr;
 
 	//(void)m_pController->CheckTeamBalance();
 	m_VoteUpdate = true;
@@ -1446,7 +1443,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			// trim right and set maximum length to 256 utf8-characters
 			int Length = 0;
 			const char *p = pMsg->m_pMessage;
-			const char *pEnd = 0;
+			const char *pEnd = nullptr;
 			while(*p)
 			{
 				const char *pStrOld = p;
@@ -1455,9 +1452,9 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				// check if unicode is not empty
 				if(!str_utf8_isspace(Code))
 				{
-					pEnd = 0;
+					pEnd = nullptr;
 				}
-				else if(pEnd == 0)
+				else if(pEnd == nullptr)
 					pEnd = pStrOld;
 
 				if(++Length >= 256)
@@ -1466,7 +1463,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 					break;
 				}
 			}
-			if(pEnd != 0)
+			if(pEnd != nullptr)
 				*(const_cast<char *>(pEnd)) = 0;
 
 			// drop empty and autocreated spam messages (more than 32 characters per second)
@@ -2386,7 +2383,7 @@ void CGameContext::AddVote(const char *pDescription, const char *pCommand)
 	int Len = str_length(pCommand);
 
 	pOption = (CVoteOptionServer *)m_pVoteOptionHeap->Allocate(sizeof(CVoteOptionServer) + Len, alignof(CVoteOptionServer));
-	pOption->m_pNext = 0;
+	pOption->m_pNext = nullptr;
 	pOption->m_pPrev = m_pVoteOptionLast;
 	if(pOption->m_pPrev)
 		pOption->m_pPrev->m_pNext = pOption;
@@ -2436,8 +2433,8 @@ void CGameContext::ConRemoveVote(IConsole::IResult *pResult, void *pUserData)
 	--pSelf->m_NumVoteOptions;
 
 	CHeap *pVoteOptionHeap = new CHeap();
-	CVoteOptionServer *pVoteOptionFirst = 0;
-	CVoteOptionServer *pVoteOptionLast = 0;
+	CVoteOptionServer *pVoteOptionFirst = nullptr;
+	CVoteOptionServer *pVoteOptionLast = nullptr;
 	int NumVoteOptions = pSelf->m_NumVoteOptions;
 	for(CVoteOptionServer *pSrc = pSelf->m_pVoteOptionFirst; pSrc; pSrc = pSrc->m_pNext)
 	{
@@ -2447,7 +2444,7 @@ void CGameContext::ConRemoveVote(IConsole::IResult *pResult, void *pUserData)
 		// copy option
 		int Len = str_length(pSrc->m_aCommand);
 		CVoteOptionServer *pDst = (CVoteOptionServer *)pVoteOptionHeap->Allocate(sizeof(CVoteOptionServer) + Len);
-		pDst->m_pNext = 0;
+		pDst->m_pNext = nullptr;
 		pDst->m_pPrev = pVoteOptionLast;
 		if(pDst->m_pPrev)
 			pDst->m_pPrev->m_pNext = pDst;
@@ -2543,8 +2540,8 @@ void CGameContext::ConClearVotes(IConsole::IResult *pResult, void *pUserData)
 	CNetMsg_Sv_VoteClearOptions VoteClearOptionsMsg;
 	pSelf->Server()->SendPackMsg(&VoteClearOptionsMsg, MSGFLAG_VITAL, -1);
 	pSelf->m_pVoteOptionHeap->Reset();
-	pSelf->m_pVoteOptionFirst = 0;
-	pSelf->m_pVoteOptionLast = 0;
+	pSelf->m_pVoteOptionFirst = nullptr;
+	pSelf->m_pVoteOptionLast = nullptr;
 	pSelf->m_NumVoteOptions = 0;
 
 	// reset sending of vote options
@@ -2825,7 +2822,7 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 		CTeeHistorian::CGameInfo GameInfo;
 		GameInfo.m_GameUuid = m_GameUuid;
 		GameInfo.m_pServerVersion = aVersion;
-		GameInfo.m_StartTime = time(0);
+		GameInfo.m_StartTime = time(nullptr);
 		GameInfo.m_pPrngDescription = m_Prng.Description();
 
 		GameInfo.m_pServerName = g_Config.m_SvName;
@@ -2861,8 +2858,8 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	CMapItemLayerTilemap *pTileMap = m_Layers.GameLayer();
 	CTile *pTiles = (CTile *)Kernel()->RequestInterface<IMap>()->GetData(pTileMap->m_Data);
 
-	CTile *pFront = 0;
-	CSwitchTile *pSwitch = 0;
+	CTile *pFront = nullptr;
+	CSwitchTile *pSwitch = nullptr;
 	if(m_Layers.FrontLayer())
 		pFront = (CTile *)Kernel()->RequestInterface<IMap>()->GetData(m_Layers.FrontLayer()->m_Front);
 	if(m_Layers.SwitchLayer())
@@ -2964,7 +2961,7 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	{
 		for(int i = 0; i < g_Config.m_DbgDummies; i++)
 		{
-			OnClientConnected(MAX_CLIENTS - i - 1, 0);
+			OnClientConnected(MAX_CLIENTS - i - 1, nullptr);
 		}
 	}
 #endif
@@ -3127,7 +3124,7 @@ void CGameContext::OnShutdown()
 	Console()->ResetServerGameSettings();
 	Collision()->Dest();
 	delete m_pController;
-	m_pController = 0;
+	m_pController = nullptr;
 	Clear();
 }
 
@@ -3139,7 +3136,7 @@ void CGameContext::LoadMapSettings()
 	for(int i = Start; i < Start + Num; i++)
 	{
 		int ItemID;
-		CMapItemInfoSettings *pItem = (CMapItemInfoSettings *)pMap->GetItem(i, 0, &ItemID);
+		CMapItemInfoSettings *pItem = (CMapItemInfoSettings *)pMap->GetItem(i, nullptr, &ItemID);
 		int ItemSize = pMap->GetItemSize(i);
 		if(!pItem || ItemID != 0)
 			continue;
@@ -3529,7 +3526,7 @@ void CGameContext::List(int ClientID, const char *pFilter)
 		{
 			Total++;
 			const char *pName = Server()->ClientName(i);
-			if(str_utf8_find_nocase(pName, pFilter) == NULL)
+			if(str_utf8_find_nocase(pName, pFilter) == nullptr)
 				continue;
 			if(Bufcnt + str_length(pName) + 4 > 256)
 			{
@@ -3556,7 +3553,7 @@ void CGameContext::List(int ClientID, const char *pFilter)
 
 int CGameContext::GetClientVersion(int ClientID) const
 {
-	IServer::CClientInfo Info = {0};
+	IServer::CClientInfo Info = {nullptr};
 	Server()->GetClientInfo(ClientID, &Info);
 	return Info.m_DDNetVersion;
 }

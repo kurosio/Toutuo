@@ -34,7 +34,7 @@ CPlayer::~CPlayer()
 	GameServer()->Antibot()->OnPlayerDestroy(m_ClientID);
 	delete m_pLastTarget;
 	delete m_pCharacter;
-	m_pCharacter = 0;
+	m_pCharacter = nullptr;
 }
 
 void CPlayer::Reset()
@@ -43,7 +43,7 @@ void CPlayer::Reset()
 	m_PreviousDieTick = m_DieTick;
 	m_JoinTick = Server()->Tick();
 	delete m_pCharacter;
-	m_pCharacter = 0;
+	m_pCharacter = nullptr;
 	m_SpectatorID = SPEC_FREEVIEW;
 	m_LastActionTick = Server()->Tick();
 	m_TeamChangeTick = Server()->Tick();
@@ -211,7 +211,7 @@ void CPlayer::Tick()
 			else if(!m_pCharacter->IsPaused())
 			{
 				delete m_pCharacter;
-				m_pCharacter = 0;
+				m_pCharacter = nullptr;
 			}
 		}
 		else if(m_Spawning && !m_WeakHookSpawn)
@@ -475,7 +475,7 @@ CCharacter *CPlayer::GetCharacter() const
 {
 	if(m_pCharacter && m_pCharacter->IsAlive())
 		return m_pCharacter;
-	return 0;
+	return nullptr;
 }
 
 void CPlayer::KillCharacter(int Weapon)
@@ -485,7 +485,7 @@ void CPlayer::KillCharacter(int Weapon)
 		m_pCharacter->Die(m_ClientID, Weapon);
 
 		delete m_pCharacter;
-		m_pCharacter = 0;
+		m_pCharacter = nullptr;
 	}
 }
 

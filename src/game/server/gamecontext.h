@@ -290,8 +290,6 @@ public:
 	bool RateLimitPlayerVote(int ClientID);
 	bool RateLimitPlayerMapVote(int ClientID);
 
-	std::shared_ptr<CScoreRandomMapResult> m_SqlRandomMapResult;
-
 private:
 	// starting 1 to make 0 the special value "no client id"
 	uint32_t NextUniqueClientID = 1;
