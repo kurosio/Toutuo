@@ -762,8 +762,6 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 									TILE_HIT_ENABLE,
 									TILE_HIT_DISABLE,
 									TILE_JUMP,
-									TILE_ADD_TIME,
-									TILE_SUBTRACT_TIME,
 									TILE_ALLOW_TELE_GUN,
 									TILE_ALLOW_BLUE_TELE_GUN};
 								CSwitchTile *pLayerSwitchTiles = ((CLayerSwitch *)pTiles)->m_pSwitchTile;
@@ -771,7 +769,7 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 
 								for(int i = 0; i < pTiles->m_Width * pTiles->m_Height; i++)
 								{
-									if(((pLayerSwitchTiles[i].m_Type > (ENTITY_CRAZY_SHOTGUN + ENTITY_OFFSET) && ((CLayerSwitch *)pTiles)->m_pSwitchTile[i].m_Type < (ENTITY_DRAGGER_WEAK + ENTITY_OFFSET)) || ((CLayerSwitch *)pTiles)->m_pSwitchTile[i].m_Type == (ENTITY_LASER_O_FAST + 1 + ENTITY_OFFSET)))
+									if(((pLayerSwitchTiles[i].m_Type > (ENTITY_ARMOR_SHOTGUN + ENTITY_OFFSET) && ((CLayerSwitch *)pTiles)->m_pSwitchTile[i].m_Type < (ENTITY_DRAGGER_WEAK + ENTITY_OFFSET)) || ((CLayerSwitch *)pTiles)->m_pSwitchTile[i].m_Type == (ENTITY_LASER_O_FAST + 1 + ENTITY_OFFSET)))
 										continue;
 									else if(pLayerSwitchTiles[i].m_Type >= (ENTITY_ARMOR_1 + ENTITY_OFFSET) && pLayerSwitchTiles[i].m_Type <= (ENTITY_DOOR + ENTITY_OFFSET))
 									{

@@ -157,14 +157,6 @@ const char *CEditor::Explain(int ExplanationID, int Tile, int Layer) //TODO: Add
 			if(Layer == LAYER_GAME || Layer == LAYER_FRONT)
 				return "REFILL JUMPS: Restores all jumps.";
 			break;
-		case TILE_START:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT)
-				return "START: Starts counting your race time.";
-			break;
-		case TILE_FINISH:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT)
-				return "FINISH: End of race.";
-			break;
 		case TILE_STOP:
 			if(Layer == LAYER_GAME || Layer == LAYER_FRONT)
 				return "STOPPER: You can hook and shoot through it. You can't go through it against the arrow.";
@@ -245,15 +237,6 @@ const char *CEditor::Explain(int ExplanationID, int Tile, int Layer) //TODO: Add
 			if(Layer == LAYER_GAME || Layer == LAYER_FRONT)
 				return "HOOK OTHERS: You can hook others.";
 			break;
-		case TILE_CREDITS_1:
-		case TILE_CREDITS_2:
-		case TILE_CREDITS_3:
-		case TILE_CREDITS_4:
-		case TILE_CREDITS_5:
-		case TILE_CREDITS_6:
-		case TILE_CREDITS_7:
-		case TILE_CREDITS_8:
-			return "CREDITS: Who designed the entities.";
 		case TILE_ENTITIES_OFF_1:
 		case TILE_ENTITIES_OFF_2:
 			return "ENTITIES OFF SIGN: Informs people playing with entities about important marks, tips, information or text on the map.";
@@ -302,34 +285,6 @@ const char *CEditor::Explain(int ExplanationID, int Tile, int Layer) //TODO: Add
 			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
 				return "LASER: Unfreezes hit tee. Bounces off the walls. Also known as laser.";
 			break;
-		case ENTITY_OFFSET + ENTITY_LASER_FAST_CCW:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "SPINNING LASER: Tile where freezing laser (made with LASER LENGTH) begins. Counter-Clockwise, fast.";
-			break;
-		case ENTITY_OFFSET + ENTITY_LASER_NORMAL_CCW:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "SPINNING LASER: Tile where freezing laser (made with LASER LENGTH) begins. Counter-Clockwise, medium speed.";
-			break;
-		case ENTITY_OFFSET + ENTITY_LASER_SLOW_CCW:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "SPINNING LASER: Tile where freezing laser (made with LASER LENGTH) begins. Counter-Clockwise, slow.";
-			break;
-		case ENTITY_OFFSET + ENTITY_LASER_STOP:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "NON-SPINNING LASER: Tile where freezing laser (made with LASER LENGTH) begins.";
-			break;
-		case ENTITY_OFFSET + ENTITY_LASER_SLOW_CW:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "SPINNING LASER: Tile where freezing laser (made with LASER LENGTH) begins. Clockwise, slow.";
-			break;
-		case ENTITY_OFFSET + ENTITY_LASER_NORMAL_CW:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "SPINNING LASER: Tile where freezing laser (made with LASER LENGTH) begins. Clockwise, medium speed.";
-			break;
-		case ENTITY_OFFSET + ENTITY_LASER_FAST_CW:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "SPINNING LASER: Tile where freezing laser (made with LASER LENGTH) begins. Clockwise, fast.";
-			break;
 		case ENTITY_OFFSET + ENTITY_LASER_SHORT:
 			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
 				return "LASER LENGTH: Put next to DOOR or SPINNING LASER, makes it 3 tiles long.";
@@ -365,30 +320,6 @@ const char *CEditor::Explain(int ExplanationID, int Tile, int Layer) //TODO: Add
 		case ENTITY_OFFSET + ENTITY_LASER_O_FAST:
 			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
 				return "LASER LENGTH CHANGE: Put next to LASER LENGTH, causes it to length and shorten constantly. Works only on (NON-)SPINNING LASER, not on DOOR. Shorten, fast.";
-			break;
-		case ENTITY_OFFSET + ENTITY_PLASMAE:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "PLASMA TURRET: Shoots plasma bullets at the closest tee. They explode on an obstactle they hit (wall or tee).";
-			break;
-		case ENTITY_OFFSET + ENTITY_PLASMAF:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "PLASMA TURRET: Shoots plasma bullets that work like FREEZE at the closest tee.";
-			break;
-		case ENTITY_OFFSET + ENTITY_PLASMA:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "PLASMA TURRET: Shoots plasma bullets that work like FREEZE at the closest tee. They also explode on an obstactly they hit (wall or tee).";
-			break;
-		case ENTITY_OFFSET + ENTITY_PLASMAU:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "PLASMA TURRET: Shoots plasma bullets that work like UNFREEZE at the closest tee.";
-			break;
-		case ENTITY_OFFSET + ENTITY_CRAZY_SHOTGUN_EX:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "EXPLODING BULLET: Bounces off the walls with explosion. Touching the bullet works like FREEZE tile (freezes for 3 seconds by default).";
-			break;
-		case ENTITY_OFFSET + ENTITY_CRAZY_SHOTGUN:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "BULLET: Bounces off the walls without explosion. Touching the bullet works like FREEZE tile (freezes for 3 seconds by default).";
 			break;
 		case ENTITY_OFFSET + ENTITY_ARMOR_SHOTGUN:
 			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
@@ -471,8 +402,6 @@ const char *CEditor::Explain(int ExplanationID, int Tile, int Layer) //TODO: Add
 				return "TELELASER OFF: Turn laser off as telegun weapon.";
 			break;
 		}
-		if(Tile >= TILE_CHECKPOINT_FIRST && Tile <= TILE_CHECKPOINT_LAST && (Layer == LAYER_GAME || Layer == LAYER_FRONT))
-			return "TIME CHECKPOINT: Compares your current race time with your record to show you whether you are running faster or slower.";
 	}
 	else if(ExplanationID == EXPLANATION_FNG)
 	{
