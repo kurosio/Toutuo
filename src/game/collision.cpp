@@ -124,7 +124,7 @@ void CCollision::Init(class CLayers *pLayers)
 
 			if(Index <= TILE_NPH_ENABLE)
 			{
-				if((Index >= TILE_JUMP && Index <= TILE_SUBTRACT_TIME) || Index == TILE_ALLOW_TELE_GUN || Index == TILE_ALLOW_BLUE_TELE_GUN)
+				if((Index >= TILE_JUMP && Index <= TILE_NPH_DISABLE) || Index == TILE_ALLOW_TELE_GUN || Index == TILE_ALLOW_BLUE_TELE_GUN)
 					m_pSwitch[i].m_Type = Index;
 				else
 					m_pSwitch[i].m_Type = 0;
@@ -1252,26 +1252,4 @@ int CCollision::IntersectAir(vec2 Pos0, vec2 Pos1, vec2 *pOutCollision, vec2 *pO
 	if(pOutBeforeCollision)
 		*pOutBeforeCollision = Pos1;
 	return 0;
-}
-
-int CCollision::IsCheckpoint(int Index) const
-{
-	if(Index < 0)
-		return -1;
-
-	int z = m_pTiles[Index].m_Index;
-	if(z >= TILE_CHECKPOINT_FIRST && z <= TILE_CHECKPOINT_LAST)
-		return z - TILE_CHECKPOINT_FIRST;
-	return -1;
-}
-
-int CCollision::IsFCheckpoint(int Index) const
-{
-	if(Index < 0 || !m_pFront)
-		return -1;
-
-	int z = m_pFront[Index].m_Index;
-	if(z >= 35 && z <= 59)
-		return z - 35;
-	return -1;
 }

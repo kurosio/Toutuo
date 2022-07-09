@@ -213,14 +213,6 @@ const char *CEditor::Explain(int ExplanationID, int Tile, int Layer) //TODO: Add
 			if(Layer == LAYER_GAME || Layer == LAYER_FRONT)
 				return "GLOBAL HOOK OTHERS OFF: Nobody can hook others. Place only one tile somewhere on the map.";
 			break;
-		case TILE_UNLOCK_TEAM:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT)
-				return "UNLOCK TEAM: Forces team to be unlocked so that team doesn't get killed when one dies.";
-			break;
-		case TILE_ADD_TIME:
-			if(Layer == LAYER_SWITCH)
-				return "PENALTY: Adds time to your current race time. Opposite of BONUS.";
-			break;
 		case TILE_NPC_DISABLE:
 			if(Layer == LAYER_GAME || Layer == LAYER_FRONT)
 				return "COLLISION OFF: You can't collide with others.";
@@ -236,10 +228,6 @@ const char *CEditor::Explain(int ExplanationID, int Tile, int Layer) //TODO: Add
 		case TILE_NPH_DISABLE:
 			if(Layer == LAYER_GAME || Layer == LAYER_FRONT)
 				return "HOOK OTHERS OFF: You can't hook others.";
-			break;
-		case TILE_SUBTRACT_TIME:
-			if(Layer == LAYER_SWITCH)
-				return "BONUS: Subtracts time from your current race time. Opposite of PENALTY.";
 			break;
 		case TILE_NPC_ENABLE:
 			if(Layer == LAYER_GAME || Layer == LAYER_FRONT)

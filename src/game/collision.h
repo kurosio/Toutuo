@@ -103,9 +103,6 @@ public:
 	int IsNoLaser(int x, int y) const;
 	int IsFNoLaser(int x, int y) const;
 
-	int IsCheckpoint(int Index) const;
-	int IsFCheckpoint(int Index) const;
-
 	int IsMover(int x, int y, int *pFlags) const;
 
 	vec2 CpSpeed(int index, int Flags = 0) const;

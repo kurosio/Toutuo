@@ -11,7 +11,7 @@ bool IsValidGameTile(int Index)
 		(Index >= TILE_WALLJUMP && Index <= TILE_SOLO_DISABLE) ||
 		(Index >= TILE_REFILL_JUMPS && Index <= TILE_STOPA) ||
 		(Index >= TILE_CP && Index <= TILE_THROUGH_DIR) ||
-		(Index >= TILE_OLDLASER && Index <= TILE_UNLOCK_TEAM) ||
+		(Index >= TILE_OLDLASER && Index <= TILE_NPH) ||
 		(Index >= TILE_NPC_DISABLE && Index <= TILE_NPH_DISABLE) ||
 		(Index >= TILE_TELE_GUN_ENABLE && Index <= TILE_TELE_GUN_DISABLE) ||
 		(Index >= TILE_TELE_GRENADE_ENABLE && Index <= TILE_TELE_GRENADE_DISABLE) ||
@@ -33,7 +33,7 @@ bool IsValidFrontTile(int Index)
 		(Index >= TILE_WALLJUMP && Index <= TILE_SOLO_DISABLE) ||
 		(Index >= TILE_REFILL_JUMPS && Index <= TILE_STOPA) ||
 		(Index >= TILE_CP && Index <= TILE_THROUGH_DIR) ||
-		(Index >= TILE_OLDLASER && Index <= TILE_UNLOCK_TEAM) ||
+		(Index >= TILE_OLDLASER && Index <= TILE_NPH) ||
 		(Index >= TILE_NPC_DISABLE && Index <= TILE_NPH_DISABLE) ||
 		(Index >= TILE_TELE_GUN_ENABLE && Index <= TILE_ALLOW_BLUE_TELE_GUN) ||
 		(Index >= TILE_TELE_GRENADE_ENABLE && Index <= TILE_TELE_GRENADE_DISABLE) ||
@@ -74,8 +74,6 @@ bool IsValidSwitchTile(int Index)
 		Index == TILE_HIT_ENABLE ||
 		Index == TILE_HIT_DISABLE ||
 		(Index >= TILE_SWITCHTIMEDOPEN && Index <= TILE_SWITCHCLOSE) ||
-		Index == TILE_ADD_TIME ||
-		Index == TILE_SUBTRACT_TIME ||
 		Index == TILE_ALLOW_TELE_GUN ||
 		Index == TILE_ALLOW_BLUE_TELE_GUN ||
 		(IsValidEntity(Index) && Index >= ENTITY_OFFSET + ENTITY_ARMOR_1));
@@ -90,8 +88,9 @@ bool IsValidEntity(int Index)
 {
 	Index -= ENTITY_OFFSET;
 	return (
-		(Index >= ENTITY_SPAWN && Index <= ENTITY_LASER_O_FAST) ||
-		(Index >= ENTITY_PLASMAE && Index <= ENTITY_ARMOR_LASER) ||
+		(Index >= ENTITY_SPAWN && Index <= ENTITY_WEAPON_LASER) ||
+		(Index >= ENTITY_LASER_SHORT && Index <= ENTITY_LASER_O_FAST) ||
+		(Index >= ENTITY_ARMOR_SHOTGUN && Index <= ENTITY_ARMOR_LASER) ||
 		(Index >= ENTITY_DRAGGER_WEAK && Index <= ENTITY_DRAGGER_STRONG_NW) ||
 		Index == ENTITY_DOOR);
 }
@@ -105,20 +104,5 @@ bool IsRotatableTile(int Index)
 		Index == TILE_CP_F ||
 		Index == TILE_THROUGH_DIR ||
 		Index == TILE_ENTITIES_OFF_1 ||
-		Index == TILE_ENTITIES_OFF_2 ||
-		Index - ENTITY_OFFSET == ENTITY_CRAZY_SHOTGUN_EX ||
-		Index - ENTITY_OFFSET == ENTITY_CRAZY_SHOTGUN);
-}
-
-bool IsCreditsTile(int TileIndex)
-{
-	return (
-		(TILE_CREDITS_1 == TileIndex) ||
-		(TILE_CREDITS_2 == TileIndex) ||
-		(TILE_CREDITS_3 == TileIndex) ||
-		(TILE_CREDITS_4 == TileIndex) ||
-		(TILE_CREDITS_5 == TileIndex) ||
-		(TILE_CREDITS_6 == TileIndex) ||
-		(TILE_CREDITS_7 == TileIndex) ||
-		(TILE_CREDITS_8 == TileIndex));
+		Index == TILE_ENTITIES_OFF_2);
 }
