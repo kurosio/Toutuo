@@ -69,19 +69,14 @@ if(NOT(MYSQL_FOUND))
 
   find_package_handle_standard_args(MySQL DEFAULT_MSG MYSQL_LIBRARY MYSQL_INCLUDEDIR)
 
-  if(MYSQL_FOUND)
-    set(MYSQL_LIBRARIES ${MYSQL_LIBRARY})
-    set(MYSQL_INCLUDE_DIRS ${MYSQL_INCLUDEDIR})
-  
+  if(MYSQL_FOUND)	
     if(TARGET_OS AND TARGET_OS STREQUAL "windows")
       set(MYSQL_COPY_FILES "${EXTRA_MYSQL_LIBDIR}/mysqlcppconn-7-vs14.dll")
     else()
       set(MYSQL_COPY_FILES)
     endif()
   endif()
-endif()
-
-if(MYSQL_FOUND)
+else()
   set(MYSQL_LIBRARIES ${MYSQL_LIBRARY})
   set(MYSQL_INCLUDE_DIRS ${MYSQL_INCLUDEDIR})
   

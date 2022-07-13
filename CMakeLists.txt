@@ -416,7 +416,7 @@ function(set_own_rpath TARGET)
     if(CMAKE_VERSION VERSION_GREATER 3.8 OR CMAKE_VERSION VERSION_EQUAL 3.8)
       set_property(TARGET ${TARGET} PROPERTY BUILD_RPATH "$ORIGIN")
     endif()
-    set_property(TARGET ${TARGET} PROPERTY INSTALL_RPATH "$ORIGIN/../lib/ddnet")
+    set_property(TARGET ${TARGET} PROPERTY INSTALL_RPATH "$ORIGIN/../lib/${PROJECT_NAME}")
   endif()
 endfunction()
 
@@ -536,6 +536,21 @@ find_package(ICU)
 if(UPNP)
   find_package(Miniupnpc)
 endif()
+
+# TODO: change ||
+set(Boost_INCLUDES_DIRS)
+#if(TARGET_OS AND TARGET_OS STREQUAL "linux")
+#  find_package(Boost 1.36.0)
+#  if(NOT(Boost_FOUND))
+#    message(FATAL_ERROR, "Required install Boost.")
+#  endif()
+#elseif(TARGET_OS AND TARGET_OS STREQUAL "mac")
+#  set(SERVER_COMPILE OFF)
+#endif()
+if(NOT(Boost_INCLUDES_DIRS))
+  set(Boost_INCLUDE_DIRS "libraries/boost/include")
+endif()
+# TODO: change ||
 
 find_package(SDL2)
 find_package(Ogg)
@@ -1485,13 +1500,8 @@ set_glob(DATA GLOB_RECURSE "frag;json;map;otf;png;rules;ttf;txt;vert;wv" data ${
 # COPY DATA AND SHARED LIBS
 ########################################################################
 
-foreach(datafile ${DATA})
-  file(RELATIVE_PATH OUT ${PROJECT_SOURCE_DIR}/data ${datafile})
-  get_filename_component(DESTINATION data/${OUT} PATH)
-  file(MAKE_DIRECTORY ${DESTINATION})
-  file(COPY ${datafile} DESTINATION ${DESTINATION})
-endforeach()
-
+file(COPY server_lang DESTINATION .)
+file(COPY data DESTINATION .)
 set(COPY_FILES_CLIENT
   ${CURL_COPY_FILES}
   ${FREETYPE_COPY_FILES}
@@ -1975,6 +1985,7 @@ if(SERVER_COMPILE)
   endif()
 
   set(SERVER_INCLUDES_DIRS
+    ${Boost_INCLUDE_DIRS}
     ${ICU_INCLUDE_DIRS}
     ${MYSQL_INCLUDE_DIRS}
     ${PNG_INCLUDE_DIRS}
@@ -2330,6 +2341,7 @@ set(CPACK_SOURCE_FILES
   lsan.supp
   other/
   scripts/
+  server_lang/
   src/
   storage.cfg
   ubsan.supp
@@ -2389,13 +2401,14 @@ endif()
 
 if(NOT DEV)
   include(GNUInstallDirs)
-  install(DIRECTORY data DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ddnet COMPONENT data)
+  install(DIRECTORY data DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME} COMPONENT data)
+  install(DIRECTORY server_lang DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME} COMPONENT server_lang)
   install(TARGETS ${TARGET_CLIENT} DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT client)
   install(TARGETS ${TARGET_SERVER} DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT server)
   if(ANTIBOT)
-    install(TARGETS ${TARGET_ANTIBOT} DESTINATION ${CMAKE_INSTALL_LIBDIR}/ddnet COMPONENT server)
+    install(TARGETS ${TARGET_ANTIBOT} DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME} COMPONENT server)
   endif()
-  install(TARGETS ${TARGETS_TOOLS} DESTINATION ${CMAKE_INSTALL_LIBDIR}/ddnet COMPONENT tools)
+  install(TARGETS ${TARGETS_TOOLS} DESTINATION ${CMAKE_INSTALL_LIBDIR}/${PROJECT_NAME} COMPONENT tools)
   install(FILES other/ddnet.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications COMPONENT client)
   install(FILES other/ddnet.appdata.xml DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/metainfo COMPONENT client)
   foreach(SIZE 16 32 48 256)
@@ -2403,7 +2416,7 @@ if(NOT DEV)
     install(FILES other/icons/DDNet-Server_${SIZE}x${SIZE}x32.png DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/${SIZE}x${SIZE}/apps RENAME ddnet-server.png COMPONENT server)
   endforeach()
   foreach(file ${VULKAN_SHADER_FILE_LIST})
-    install(FILES ${PROJECT_BINARY_DIR}/${file} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ddnet/data/shader/vulkan COMPONENT client)
+    install(FILES ${PROJECT_BINARY_DIR}/${file} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/data/shader/vulkan COMPONENT client)
   endforeach()
 endif()
 
