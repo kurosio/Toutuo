@@ -114,7 +114,7 @@ bool CLocalization::CLanguage::Load(CLocalization *pLocalization, IStorage *pSto
 		return false;
 
 	const int FileSize = (int)io_length(File);
-	char *pFileData = (char *)calloc(FileSize, 1);
+	char *pFileData = (char *)malloc(FileSize);
 	io_read(File, pFileData, FileSize);
 	io_close(File);
 
@@ -219,9 +219,9 @@ bool CLocalization::CLanguage::Load(CLocalization *pLocalization, IStorage *pSto
 	return true;
 }
 
-const char* CLocalization::CLanguage::Localize(const char* pText) const
+const char *CLocalization::CLanguage::Localize(const char *pKey) const
 {
-	const CEntry* pEntry = m_Translations.get(pText);
+	const CEntry* pEntry = m_Translations.get(pKey);
 	if(!pEntry)
 		return nullptr;
 
@@ -295,7 +295,7 @@ bool CLocalization::Init()
 
 	// read file data into buffer
 	const char* pFilename = "./server_lang/index.json";
-	const IOHANDLE& File = Storage()->OpenFile(pFilename, IOFLAG_READ, IStorage::TYPE_ALL);
+	IOHANDLE File = Storage()->OpenFile(pFilename, IOFLAG_READ, IStorage::TYPE_ALL);
 	if(!File)
 	{
 		dbg_msg("Localization", "can't open ./server_lang/index.json");
@@ -304,7 +304,7 @@ bool CLocalization::Init()
 
 
 	const int FileSize = (int)io_length(File);
-	char *pFileData = (char *)calloc(FileSize, 1);
+	char *pFileData = (char *)malloc(FileSize);
 	io_read(File, pFileData, FileSize);
 	io_close(File);
 
@@ -314,11 +314,10 @@ bool CLocalization::Init()
 	char aError[256];
 	json_value* pJsonData = json_parse_ex(&JsonSettings, pFileData, FileSize, aError);
 	free(pFileData);
+
+	// return true because it's not a critical error
 	if(pJsonData == nullptr)
-	{
-		delete[] pFileData;
-		return true; // return true because it's not a critical error
-	}
+		return true;
 
 	// extract data
 	m_pMainLanguage = nullptr;

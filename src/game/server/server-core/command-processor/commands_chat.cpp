@@ -2,7 +2,6 @@
 #include <game/server/player.h>
 
 #include <engine/shared/config.h>
-#include <engine/shared/protocol.h>
 #include <game/version.h>
 
 #include "commands_chat.h"

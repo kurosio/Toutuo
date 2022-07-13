@@ -27,7 +27,6 @@ class CCommandsRconProcessor
 	static void ConTuneParam(IConsole::IResult* pResult, void* pUserData);
 	static void ConToggleTuneParam(IConsole::IResult* pResult, void* pUserData);
 	static void ConTuneDump(IConsole::IResult* pResult, void* pUserData);
-	static void ConSwitchOpen(IConsole::IResult* pResult, void* pUserData);
 
 	/************************************************************************/
 	/*  Mutes                                                               */
