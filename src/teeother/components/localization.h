@@ -91,6 +91,7 @@ public:
 	fixed_string128 m_Cfg_MainLanguage;
 
 protected:
+	IOHANDLE GetDefaultIndexFile();
 	const char* LocalizeWithDepth(const char* pLanguageCode, const char* pText, int Depth);
 	const char* LocalizeWithDepth_P(const char* pLanguageCode, int Number, const char* pText, int Depth);
 

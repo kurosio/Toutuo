@@ -289,19 +289,17 @@ bool CLocalization::Init()
 	m_pUtf8Converter = ucnv_open("utf8", &Status);
 	if(U_FAILURE(Status))
 	{
-		dbg_msg("Localization", "Can't create UTF8/UTF16 convertert");
+		dbg_msg("Localization", "can't create UTF8/UTF16 convertert");
 		return false;
 	}
 
 	// read file data into buffer
-	const char* pFilename = "./server_lang/index.json";
-	IOHANDLE File = Storage()->OpenFile(pFilename, IOFLAG_READ, IStorage::TYPE_ALL);
+	IOHANDLE File = GetDefaultIndexFile();
 	if(!File)
 	{
-		dbg_msg("Localization", "can't open ./server_lang/index.json");
+		dbg_msg("Localization", "can't open server_lang/index.json");
 		return false;
 	}
-
 
 	const int FileSize = (int)io_length(File);
 	char *pFileData = (char *)malloc(FileSize);
@@ -346,7 +344,44 @@ bool CLocalization::Init()
 	return true;
 }
 
-const char* CLocalization::LocalizeWithDepth(const char* pLanguageCode, const char* pText, int Depth)
+IOHANDLE CLocalization::GetDefaultIndexFile()
+{
+	const char *pFilename = "server_lang/index.json";
+	IOHANDLE File = Storage()->OpenFile(pFilename, IOFLAG_READ, IStorage::TYPE_ALL);
+	if(File)
+	{
+		dbg_msg("Localization", "%s file found, no creation required", pFilename);
+		return File;
+	}
+
+	fs_makedir("server_lang");
+	File = Storage()->OpenFile(pFilename, IOFLAG_WRITE, IStorage::TYPE_ABSOLUTE);
+	if(!File)
+	{
+		dbg_msg("Localization", "the file %s cannot be created", pFilename);
+		return nullptr;
+	}
+
+	const char* pBuffer = nullptr;
+#define _WRLINE(text) pBuffer = text; \
+	io_write(File, pBuffer, str_length(pBuffer)), io_write_newline(File);
+
+	_WRLINE("{\"language indices\": [")
+	_WRLINE("\t")
+	_WRLINE("\t{")
+	_WRLINE("\t\t\"file\": \"en\",")
+	_WRLINE("\t\t\"name\": \"English\"")
+	_WRLINE("\t}")
+	_WRLINE("]")
+	_WRLINE("}")
+	io_close(File);
+#undef _WRLINE
+
+	File = Storage()->OpenFile(pFilename, IOFLAG_READ, IStorage::TYPE_ALL);
+	return File;
+}
+
+const char *CLocalization::LocalizeWithDepth(const char *pLanguageCode, const char *pText, int Depth)
 {
 	CLanguage* pLanguage = m_pMainLanguage;
 	if(pLanguageCode)
