@@ -82,7 +82,7 @@ public:
 		NUM_DIRECTIONS,
 	};
 
-protected:
+private:
 	CLanguage* m_pMainLanguage;
 	UConverter* m_pUtf8Converter;
 
@@ -90,8 +90,7 @@ public:
 	array<CLanguage*> m_pLanguages;
 	fixed_string128 m_Cfg_MainLanguage;
 
-protected:
-	IOHANDLE GetDefaultIndexFile();
+private:
 	const char* LocalizeWithDepth(const char* pLanguageCode, const char* pText, int Depth);
 	const char* LocalizeWithDepth_P(const char* pLanguageCode, int Number, const char* pText, int Depth);
 
@@ -101,10 +100,11 @@ protected:
 
 public:
 	CLocalization(class IStorage* pStorage);
-	virtual ~CLocalization();
+	~CLocalization();
 
-	virtual bool InitConfig(int argc, const char** argv);
-	virtual bool Init();
+	bool InitConfig(int argc, const char** argv);
+	bool Init();
+	IOHANDLE GetDefaultIndexFile();
 
 	inline bool GetWritingDirection() const { return (!m_pMainLanguage ? DIRECTION_LTR : m_pMainLanguage->GetWritingDirection()); }
 

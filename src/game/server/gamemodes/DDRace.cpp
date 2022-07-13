@@ -39,12 +39,9 @@ void CGameControllerDDRace::OnPlayerConnect(CPlayer *pPlayer)
 
 	if(!Server()->ClientPrevIngame(ClientID))
 	{
-		char aBuf[512];
-		str_format(aBuf, sizeof(aBuf), "'%s' entered and joined the %s", Server()->ClientName(ClientID), GetTeamName(pPlayer->GetTeam()));
-		GameServer()->SendChat(-1, CGameContext::CHAT_ALL, aBuf, -1);
-
-		GameServer()->SendChatTarget(ClientID, "DDraceNetwork Mod. Version: " GAME_VERSION);
-		GameServer()->SendChatTarget(ClientID, "please visit DDNet.tw or say /info and make sure to read our /rules");
+		GameServer()->Chat(-1, "'{STR}' entered and joined the {STR}", Server()->ClientName(ClientID), GetTeamName(pPlayer->GetTeam()));
+		GameServer()->Chat(ClientID, "DDraceNetwork Mod. Version: " GAME_VERSION);
+		GameServer()->Chat(ClientID, "please visit DDNet.tw or say /info and make sure to read our /rules");
 	}
 }
 
