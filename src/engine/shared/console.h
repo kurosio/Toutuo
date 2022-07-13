@@ -222,6 +222,7 @@ public:
 
 	static void ConUserCommandStatus(IConsole::IResult *pResult, void *pUser);
 	void SetFlagMask(int FlagMask) override { m_FlagMask = FlagMask; }
+	bool IsCommand(const char *pStr, int FlagMask) override;
 };
 
 #endif

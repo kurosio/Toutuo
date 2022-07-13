@@ -33,7 +33,6 @@ class IEngineInput;
 class IEngineMap;
 class IEngineSound;
 class IFriends;
-class ISteam;
 class IStorage;
 class IUpdater;
 
@@ -118,7 +117,6 @@ class CClient : public IClient, public CDemoPlayer::IListener
 	IStorage *m_pStorage;
 	IUpdater *m_pUpdater;
 	IDiscord *m_pDiscord;
-	ISteam *m_pSteam;
 
 	enum
 	{
@@ -310,7 +308,6 @@ public:
 	IStorage *Storage() { return m_pStorage; }
 	IUpdater *Updater() { return m_pUpdater; }
 	IDiscord *Discord() { return m_pDiscord; }
-	ISteam *Steam() { return m_pSteam; }
 
 	CClient();
 

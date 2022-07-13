@@ -181,6 +181,7 @@ public:
 
 		char m_aName[MAX_NAME_LENGTH];
 		char m_aClan[MAX_CLAN_LENGTH];
+		char m_aLanguage[MAX_LANGUAGE_LENGTH];
 		int m_Country;
 		int m_Score;
 		int m_Authed;
@@ -279,6 +280,8 @@ public:
 	void SetClientCountry(int ClientID, int Country) override;
 	void SetClientScore(int ClientID, int Score) override;
 	void SetClientFlags(int ClientID, int Flags) override;
+	void SetClientLanguage(int ClientID, const char *pLanguage) override;
+	const char *GetClientLanguage(int ClientID) const override;
 
 	void Kick(int ClientID, const char *pReason) override;
 	void Ban(int ClientID, int Seconds, const char *pReason) override;

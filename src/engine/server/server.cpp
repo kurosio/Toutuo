@@ -46,6 +46,8 @@
 #include "databases/connection_pool.h"
 #include "register.h"
 
+#include <teeother/components/localization.h>
+
 #if defined(CONF_FAMILY_WINDOWS)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -572,6 +574,21 @@ void CServer::Kick(int ClientID, const char *pReason)
 
 	m_NetServer.Drop(ClientID, pReason);
 }
+
+void CServer::SetClientLanguage(int ClientID, const char *pLanguage)
+{
+	if(ClientID < 0 || ClientID >= MAX_PLAYERS || m_aClients[ClientID].m_State < CClient::STATE_READY)
+		return;
+	str_copy(m_aClients[ClientID].m_aLanguage, pLanguage, sizeof(m_aClients[ClientID].m_aLanguage));
+}
+
+const char *CServer::GetClientLanguage(int ClientID) const
+{
+	if(ClientID < 0 || ClientID >= MAX_PLAYERS || m_aClients[ClientID].m_State < CClient::STATE_READY)
+		return "en";
+	return m_aClients[ClientID].m_aLanguage;
+}
+
 
 void CServer::Ban(int ClientID, int Seconds, const char *pReason)
 {
@@ -2332,22 +2349,6 @@ int CServer::Run()
 		return -1;
 	}
 
-	if(Config()->m_SvSqliteFile[0] != '\0')
-	{
-		auto pSqliteConn = CreateSqliteConnection(Config()->m_SvSqliteFile, true);
-
-		if(Config()->m_SvUseSQL)
-		{
-			DbPool()->RegisterDatabase(std::move(pSqliteConn), CDbConnectionPool::WRITE_BACKUP);
-		}
-		else
-		{
-			auto pCopy = std::unique_ptr<IDbConnection>(pSqliteConn->Copy());
-			DbPool()->RegisterDatabase(std::move(pSqliteConn), CDbConnectionPool::READ);
-			DbPool()->RegisterDatabase(std::move(pCopy), CDbConnectionPool::WRITE);
-		}
-	}
-
 	// start server
 	NETADDR BindAddr;
 	int NetType = Config()->m_SvIpv4Only ? NETTYPE_IPV4 : NETTYPE_ALL;
@@ -3634,6 +3635,15 @@ int main(int argc, const char **argv)
 	}
 	pEngine->SetAdditionalLogger(std::make_unique<CServerLogger>(pServer));
 
+	// init localizations
+	pServer->m_pLocalization = new CLocalization(pStorage);
+	if(!pServer->m_pLocalization->Init())
+	{
+		pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "localization", "could not initialize localization");
+		pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "localization", "check the 'server_lang' folder in the server directory");
+		return -1;
+	}
+
 	// run the server
 	dbg_msg("server", "starting...");
 	int Ret = pServer->Run();
@@ -3642,8 +3652,8 @@ int main(int argc, const char **argv)
 	secure_random_uninit();
 
 	// free
+	delete pServer->m_pLocalization;
 	delete pKernel;
-
 	return Ret;
 }
 

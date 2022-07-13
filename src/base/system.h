@@ -1156,6 +1156,8 @@ void net_unix_close(UNIXSOCKET sock);
  */
 void str_append(char *dst, const char *src, int dst_size);
 
+void str_append_num(char *dst, const char *src, int dst_size, int num);
+
 /**
  * Copies a string to another.
  *

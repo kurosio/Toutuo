@@ -27,6 +27,8 @@
 #include "gamemodes/DDRace.h"
 #include "player.h"
 
+#include <teeother/components/localization.h>
+
 // Not thread-safe!
 class CClientChatLogger : public ILogger
 {
@@ -156,6 +158,13 @@ CNetObj_PlayerInput CGameContext::GetLastPlayerInput(int ClientID) const
 {
 	dbg_assert(0 <= ClientID && ClientID < MAX_CLIENTS, "invalid ClientID");
 	return m_aLastPlayerInput[ClientID];
+}
+
+CPlayer *CGameContext::GetPlayer(int ClientID)
+{
+	if(ClientID < 0 || ClientID >= MAX_CLIENTS)
+		return nullptr;
+	return m_apPlayers[ClientID];
 }
 
 class CCharacter *CGameContext::GetPlayerChar(int ClientID)
@@ -463,13 +472,125 @@ void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, in
 	}
 }
 
-void CGameContext::SendStartWarning(int ClientID, const char *pMessage)
+// send a formatted message
+void CGameContext::Chat(int ClientID, const char *pText, ...)
 {
-	CCharacter *pChr = GetPlayerChar(ClientID);
-	if(pChr && pChr->m_LastStartWarning < Server()->Tick() - 3 * Server()->TickSpeed())
+	const int Start = (ClientID < 0 ? 0 : ClientID);
+	const int End = (ClientID < 0 ? MAX_PLAYERS : ClientID + 1);
+
+	CNetMsg_Sv_Chat Msg;
+	Msg.m_Team = 0;
+	Msg.m_ClientID = -1;
+	Msg.m_pMessage = pText;
+
+	va_list VarArgs;
+	va_start(VarArgs, pText);
+
+	dynamic_string Buffer;
+	for(int i = Start; i < End; i++)
 	{
-		SendChatTarget(ClientID, pMessage);
-		pChr->m_LastStartWarning = Server()->Tick();
+		if(m_apPlayers[i])
+		{
+			Server()->Localization()->Format_VL(Buffer, Server()->GetClientLanguage(i), pText, VarArgs);
+			Msg.m_pMessage = Buffer.buffer();
+			Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, i);
+			Buffer.clear();
+		}
+	}
+
+	va_end(VarArgs);
+}
+
+void CGameContext::AddBroadcast(int ClientID, const char *pText, int Priority, int LifeSpan)
+{
+	if(ClientID < 0 || ClientID >= MAX_PLAYERS)
+		return;
+
+	if(LifeSpan > 0)
+	{
+		if(m_aBroadcastStates[ClientID].m_TimedPriority > Priority)
+			return;
+
+		str_copy(m_aBroadcastStates[ClientID].m_aTimedMessage, pText, sizeof(m_aBroadcastStates[ClientID].m_aTimedMessage));
+		m_aBroadcastStates[ClientID].m_LifeSpanTick = LifeSpan;
+		m_aBroadcastStates[ClientID].m_TimedPriority = Priority;
+	}
+	else
+	{
+		if(m_aBroadcastStates[ClientID].m_Priority > Priority)
+			return;
+
+		str_copy(m_aBroadcastStates[ClientID].m_aNextMessage, pText, sizeof(m_aBroadcastStates[ClientID].m_aNextMessage));
+		m_aBroadcastStates[ClientID].m_Priority = Priority;
+	}
+}
+
+// formatted broadcast
+void CGameContext::Broadcast(int ClientID, int Priority, int LifeSpan, const char *pText, ...)
+{
+	int Start = (ClientID < 0 ? 0 : ClientID);
+	int End = (ClientID < 0 ? MAX_PLAYERS : ClientID + 1);
+
+	va_list VarArgs;
+	va_start(VarArgs, pText);
+	for(int i = Start; i < End; i++)
+	{
+		if(m_apPlayers[i])
+		{
+			dynamic_string Buffer;
+			Server()->Localization()->Format_VL(Buffer, Server()->GetClientLanguage(i), pText, VarArgs);
+			AddBroadcast(i, Buffer.buffer(), Priority, LifeSpan);
+			Buffer.clear();
+		}
+	}
+	va_end(VarArgs);
+}
+
+// the tick of the broadcast and his life
+void CGameContext::BroadcastTick(int ClientID)
+{
+	if(ClientID < 0 || ClientID >= MAX_PLAYERS)
+		return;
+
+	if(m_apPlayers[ClientID])
+	{
+		if(m_aBroadcastStates[ClientID].m_LifeSpanTick > 0 && m_aBroadcastStates[ClientID].m_TimedPriority > m_aBroadcastStates[ClientID].m_Priority)
+			str_copy(m_aBroadcastStates[ClientID].m_aNextMessage, m_aBroadcastStates[ClientID].m_aTimedMessage, sizeof(m_aBroadcastStates[ClientID].m_aNextMessage));
+
+		// send broadcast only if the message is different, or to fight auto-fading
+		if(str_comp(m_aBroadcastStates[ClientID].m_aPrevMessage, m_aBroadcastStates[ClientID].m_aNextMessage) != 0 ||
+			m_aBroadcastStates[ClientID].m_NoChangeTick > Server()->TickSpeed())
+		{
+			CNetMsg_Sv_Broadcast Msg;
+			Msg.m_pMessage = m_aBroadcastStates[ClientID].m_aNextMessage;
+			Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, ClientID);
+			str_copy(m_aBroadcastStates[ClientID].m_aPrevMessage, m_aBroadcastStates[ClientID].m_aNextMessage, sizeof(m_aBroadcastStates[ClientID].m_aPrevMessage));
+			m_aBroadcastStates[ClientID].m_NoChangeTick = 0;
+		}
+		else
+			m_aBroadcastStates[ClientID].m_NoChangeTick++;
+
+		// update broadcast state
+		if(m_aBroadcastStates[ClientID].m_LifeSpanTick > 0)
+			m_aBroadcastStates[ClientID].m_LifeSpanTick--;
+
+		if(m_aBroadcastStates[ClientID].m_LifeSpanTick <= 0)
+		{
+			m_aBroadcastStates[ClientID].m_aTimedMessage[0] = 0;
+			m_aBroadcastStates[ClientID].m_TimedPriority = 0;
+		}
+		m_aBroadcastStates[ClientID].m_aNextMessage[0] = 0;
+		m_aBroadcastStates[ClientID].m_Priority = 0;
+	}
+	else
+	{
+		m_aBroadcastStates[ClientID].m_NoChangeTick = 0;
+		m_aBroadcastStates[ClientID].m_LifeSpanTick = 0;
+		m_aBroadcastStates[ClientID].m_Priority = 0;
+		m_aBroadcastStates[ClientID].m_TimedPriority = 0;
+		m_aBroadcastStates[ClientID].m_aPrevMessage[0] = 0;
+		m_aBroadcastStates[ClientID].m_aNextMessage[0] = 0;
+		m_aBroadcastStates[ClientID].m_aTimedMessage[0] = 0;
 	}
 }
 
@@ -762,6 +883,9 @@ void CGameContext::OnTick()
 
 			m_apPlayers[i]->Tick();
 			m_apPlayers[i]->PostTick();
+
+			if(i < MAX_PLAYERS)
+				BroadcastTick(i);
 		}
 	}
 
@@ -2606,6 +2730,12 @@ void CGameContext::ConVote(IConsole::IResult *pResult, void *pUserData)
 		pSelf->ForceVote(pResult->m_ClientID, false);
 }
 
+void CGameContext::ConDumpAntibot(IConsole::IResult *pResult, void *pUserData)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	pSelf->Antibot()->Dump();
+}
+
 void CGameContext::ConchainSpecialMotdupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
 {
 	pfnCallback(pResult, pCallbackUserData);
@@ -2652,11 +2782,6 @@ void CGameContext::OnConsoleInit()
 	Console()->Register("dump_antibot", "", CFGFLAG_SERVER, ConDumpAntibot, this, "Dumps the antibot status");
 
 	Console()->Chain("sv_motd", ConchainSpecialMotdupdate, this);
-
-#define CONSOLE_COMMAND(name, params, flags, callback, userdata, help) m_pConsole->Register(name, params, flags, callback, userdata, help);
-#include <game/ddracecommands.h>
-#define CHAT_COMMAND(name, params, flags, callback, userdata, help) m_pConsole->Register(name, params, flags, callback, userdata, help);
-#include <game/ddracechat.h>
 }
 
 void CGameContext::OnInit(/*class IKernel *pKernel*/)
@@ -3316,6 +3441,119 @@ void CGameContext::ResetTuning()
 	Tuning()->Set("shotgun_speeddiff", 0);
 	Tuning()->Set("shotgun_curvature", 0);
 	SendTuningParams(-1);
+}
+
+bool CGameContext::TryVoteMute(const NETADDR *pAddr, int Secs)
+{
+	// find a matching vote mute for this ip, update expiration time if found
+	for(int i = 0; i < m_NumVoteMutes; i++)
+	{
+		if(net_addr_comp_noport(&m_aVoteMutes[i].m_Addr, pAddr) == 0)
+		{
+			m_aVoteMutes[i].m_Expire = Server()->Tick() + Secs * Server()->TickSpeed();
+			return true;
+		}
+	}
+
+	// nothing to update create new one
+	if(m_NumVoteMutes < MAX_VOTE_MUTES)
+	{
+		m_aVoteMutes[m_NumVoteMutes].m_Addr = *pAddr;
+		m_aVoteMutes[m_NumVoteMutes].m_Expire = Server()->Tick() + Secs * Server()->TickSpeed();
+		m_NumVoteMutes++;
+		return true;
+	}
+	// no free slot found
+	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "votemute", "vote mute array is full");
+	return false;
+}
+
+bool CGameContext::VoteMute(const NETADDR *pAddr, int Secs, const char *pDisplayName, int AuthedID)
+{
+	if(!TryVoteMute(pAddr, Secs))
+		return false;
+
+	if(!pDisplayName)
+		return true;
+
+	char aBuf[128];
+	str_format(aBuf, sizeof aBuf, "'%s' banned '%s' for %d seconds from voting.",
+		Server()->ClientName(AuthedID), pDisplayName, Secs);
+	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "votemute", aBuf);
+	return true;
+}
+
+bool CGameContext::VoteUnmute(const NETADDR *pAddr, const char *pDisplayName, int AuthedID)
+{
+	for(int i = 0; i < m_NumVoteMutes; i++)
+	{
+		if(net_addr_comp_noport(&m_aVoteMutes[i].m_Addr, pAddr) == 0)
+		{
+			m_NumVoteMutes--;
+			m_aVoteMutes[i] = m_aVoteMutes[m_NumVoteMutes];
+			if(pDisplayName)
+			{
+				char aBuf[128];
+				str_format(aBuf, sizeof aBuf, "'%s' unbanned '%s' from voting.",
+					Server()->ClientName(AuthedID), pDisplayName);
+				Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "voteunmute", aBuf);
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
+bool CGameContext::TryMute(const NETADDR *pAddr, int Secs, const char *pReason, bool InitialChatDelay)
+{
+	// find a matching mute for this ip, update expiration time if found
+	for(int i = 0; i < m_NumMutes; i++)
+	{
+		if(net_addr_comp_noport(&m_aMutes[i].m_Addr, pAddr) == 0)
+		{
+			const int NewExpire = Server()->Tick() + Secs * Server()->TickSpeed();
+			if(NewExpire > m_aMutes[i].m_Expire)
+			{
+				m_aMutes[i].m_Expire = NewExpire;
+				str_copy(m_aMutes[i].m_aReason, pReason, sizeof(m_aMutes[i].m_aReason));
+				m_aMutes[i].m_InitialChatDelay = InitialChatDelay;
+			}
+			return true;
+		}
+	}
+
+	// nothing to update create new one
+	if(m_NumMutes < MAX_MUTES)
+	{
+		m_aMutes[m_NumMutes].m_Addr = *pAddr;
+		m_aMutes[m_NumMutes].m_Expire = Server()->Tick() + Secs * Server()->TickSpeed();
+		str_copy(m_aMutes[m_NumMutes].m_aReason, pReason, sizeof(m_aMutes[m_NumMutes].m_aReason));
+		m_aMutes[m_NumMutes].m_InitialChatDelay = InitialChatDelay;
+		m_NumMutes++;
+		return true;
+	}
+	// no free slot found
+	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "mutes", "mute array is full");
+	return false;
+}
+
+void CGameContext::Mute(const NETADDR *pAddr, int Secs, const char *pDisplayName, const char *pReason, bool InitialChatDelay)
+{
+	if(Secs <= 0)
+		return;
+	if(!TryMute(pAddr, Secs, pReason, InitialChatDelay))
+		return;
+	if(InitialChatDelay)
+		return;
+	if(!pDisplayName)
+		return;
+
+	char aBuf[128];
+	if(pReason[0])
+		str_format(aBuf, sizeof aBuf, "'%s' has been muted for %d seconds (%s)", pDisplayName, Secs, pReason);
+	else
+		str_format(aBuf, sizeof aBuf, "'%s' has been muted for %d seconds", pDisplayName, Secs);
+	SendChat(-1, CHAT_ALL, aBuf);
 }
 
 bool CheckClientID2(int ClientID)

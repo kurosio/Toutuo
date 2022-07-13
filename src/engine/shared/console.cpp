@@ -18,6 +18,18 @@
 #include <new>
 
 // todo: rework this
+bool CConsole::IsCommand(const char *pStr, int FlagMask)
+{
+	for(CCommand *pCommand = m_pFirstCommand; pCommand; pCommand = pCommand->m_pNext)
+	{
+		if(pCommand->m_Flags & FlagMask)
+		{
+			if(str_comp_nocase(pCommand->m_pName, pStr) == 0)
+				return true;
+		}
+	}
+	return false;
+}
 
 const char *CConsole::CResult::GetString(unsigned Index)
 {

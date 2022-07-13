@@ -110,19 +110,17 @@ elseif(TARGET_OS STREQUAL "mac")
 endif()
 
 option(WEBSOCKETS "Enable websockets support" OFF)
-option(MYSQL "Enable mysql support" OFF)
-option(TEST_MYSQL "Test mysql support in unit tests (also sets -DMYSQL=ON)" OFF)
 option(AUTOUPDATE "Enable the autoupdater" OFF)
 option(INFORM_UPDATE "Inform about available updates" ON)
 option(VIDEORECORDER "Enable video recording support via FFmpeg" ON)
 option(UPNP "Enable UPnP support" OFF)
 option(ANTIBOT "Enable support for a dynamic anticheat library" OFF)
-option(HEADLESS_CLIENT "Build the client without graphics" OFF)
-option(CLIENT "Compile client" ON)
-option(SERVER "Compile server" ON)
+
+option(CLIENT_COMPILE "Compile client" ON)
+option(SERVER_COMPILE "Build the server together with the client" ON)
+
 option(TOOLS "Compile tools" ON)
 option(DOWNLOAD_GTEST "Download and compile GTest" ${AUTO_DEPENDENCIES_DEFAULT})
-option(STEAM "Build the Steam release version" OFF)
 option(DISCORD "Enable Discord rich presence support" OFF)
 option(DISCORD_DYNAMIC "Enable discovering Discord rich presence libraries at runtime (Linux only)" OFF)
 option(PREFER_BUNDLED_LIBS "Prefer bundled libraries over system libraries" ${AUTO_DEPENDENCIES_DEFAULT})
@@ -135,10 +133,6 @@ option(FUSE_LD "Linker to use" OFF)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
   include(${PROJECT_SOURCE_DIR}/cmake/toolchains/Emscripten.toolchain)
-endif()
-
-if(TEST_MYSQL)
-  set(MYSQL ON)
 endif()
 
 # Set version if not explicitly set
@@ -188,6 +182,7 @@ endif()
 
 set(SERVER_EXECUTABLE Toutuo-Server CACHE STRING "Name of the built server executable")
 set(CLIENT_EXECUTABLE Toutuo CACHE STRING "Name of the build client executable")
+set(CLIENT_COMPILE ON)
 
 ########################################################################
 # Compiler flags
@@ -426,7 +421,7 @@ function(set_own_rpath TARGET)
 endfunction()
 
 if(NOT TARGET_OS STREQUAL "windows" AND NOT TARGET_OS STREQUAL "mac" AND CMAKE_VERSION VERSION_LESS 3.8)
-  if((CLIENT AND (STEAM OR DISCORD_DYNAMIC)) OR ANTIBOT)
+  if((CLIENT AND DISCORD_DYNAMIC) OR ANTIBOT)
     message(STATUS "Can't set BUILD_RPATH in CMake before 3.8, pass -Wl,-rpath,'$ORIGIN' manually if you wish to emulate this. Or just install a newer version of CMake...")
   endif()
 endif()
@@ -519,51 +514,57 @@ if(NOT CMAKE_CROSSCOMPILING)
 endif()
 if(TARGET_OS STREQUAL "android")
   find_package(Android)
+else()
+  find_package(GLEW)
 endif()
-find_package(ZLIB)
-find_package(Crypto)
-find_package(Curl)
-if(CLIENT AND VIDEORECORDER)
-  find_package(FFMPEG)
-endif()
-find_package(Freetype)
+find_package(PythonInterp 3)
 if(DOWNLOAD_GTEST)
   find_package(Git)
 endif()
-if(NOT(TARGET_OS STREQUAL "android"))
-  find_package(GLEW)
+set(WEBSOCKETS_LIBRARIES)
+set(WEBSOCKETS_INCLUDE_DIRS)
+if(WEBSOCKETS)
+  find_package(Websockets)
 endif()
 find_package(GTest)
+find_package(ZLIB)
+find_package(Crypto)
+find_package(Curl)
+find_package(MySQL)
+find_package(ICU)
+
 if(UPNP)
   find_package(Miniupnpc)
 endif()
-if(MYSQL)
-  find_package(MySQL)
-else()
-  set(MYSQL_LIBRARIES)
-endif()
+
+find_package(SDL2)
 find_package(Ogg)
 find_package(Opus)
 find_package(Opusfile)
 find_package(PNG)
-find_package(PythonInterp 3)
-find_package(SDL2)
+find_package(Freetype)
 find_package(SQLite3)
+
+if(VIDEORECORDER) 
+  find_package(FFMPEG)
+endif()
 if(DISCORD)
   find_package(DiscordSdk)
 endif()
+  set(VULKAN_LIBRARIES)
+  set(VULKAN_INCLUDE_DIRS)
+  set(VULKAN_SHADER_FILE_LIST "" CACHE STRING "Vulkan shader file list")
+if(VULKAN)
+  find_package(Vulkan)
+  include(cmake/BuildVulkanShaders.cmake)
+endif()
+
 if(UNIX)
   # Use -pthread instead of -lpthread to draw dependencies other than libpthread
   set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 endif()
 find_package(Threads)
 find_package(Wavpack)
-if(WEBSOCKETS)
-  find_package(Websockets)
-else()
-  set(WEBSOCKETS_LIBRARIES)
-  set(WEBSOCKETS_INCLUDE_DIRS)
-endif()
 
 if(EXCEPTION_HANDLING)
   find_package(ExceptionHandling)
@@ -574,14 +575,20 @@ if(TARGET_OS AND TARGET_OS STREQUAL "mac")
   find_program(DMGBUILD dmgbuild)
 endif()
 
-set(VULKAN_SHADER_FILE_LIST "" CACHE STRING "Vulkan shader file list")
-if(CLIENT AND VULKAN)
-  find_package(Vulkan)
-  include(cmake/BuildVulkanShaders.cmake)
-else()
-  set(VULKAN_LIBRARIES)
-  set(VULKAN_INCLUDE_DIRS)
-endif()
+function(show_dependency_status OUTPUT_NAME NAME REQUIRED)
+  if(${NAME}_FOUND)
+    if(${NAME}_BUNDLED)
+      message(STATUS " * ${OUTPUT_NAME} not found (using bundled version)")
+    else()
+      message(STATUS " * ${OUTPUT_NAME} found")
+    endif()
+  else()
+    message(STATUS " * ${OUTPUT_NAME} not found")
+    if(REQUIRED)
+      message(SEND_ERROR "You must install ${OUTPUT_NAME} to compile project")
+    endif()
+  endif()
+endfunction()
 
 message(STATUS "******** ${CMAKE_PROJECT_NAME} ********")
 set(TARGET "Target OS: ${TARGET_OS} ${CMAKE_SYSTEM_PROCESSOR}")
@@ -591,87 +598,39 @@ endif()
 message(STATUS ${TARGET})
 message(STATUS "Compiler: ${CMAKE_CXX_COMPILER}")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
-
 message(STATUS "Dependencies:")
-function(show_dependency_status OUTPUT_NAME NAME)
-  if(${NAME}_FOUND)
-    if(${NAME}_BUNDLED)
-      message(STATUS " * ${OUTPUT_NAME} not found (using bundled version)")
-    else()
-      message(STATUS " * ${OUTPUT_NAME} found")
-    endif()
-  else()
-    message(STATUS " * ${OUTPUT_NAME} not found")
-  endif()
-endfunction()
 
-show_dependency_status("Curl" CURL)
+show_dependency_status("PythonInterp" PYTHONINTERP TRUE)
 if(TARGET_OS AND TARGET_OS STREQUAL "mac")
-  show_dependency_status("Dmg tools" DMGTOOLS)
+  show_dependency_status("Dmg tools" DMGTOOLS TRUE)
+  show_dependency_status("Dmgbuild" DMGBUILD TRUE)
 endif()
-if(CLIENT AND VIDEORECORDER)
-  show_dependency_status("FFmpeg" FFMPEG)
+if(SERVER_COMPILE)
+  show_dependency_status("MySQL" MYSQL TRUE)
+  show_dependency_status("ICU" ICU TRUE)
+  show_dependency_status("Miniupnpc" MINIUPNPC ${UPNP})
+  show_dependency_status("OpenSSL Crypto" CRYPTO FALSE)
 endif()
-show_dependency_status("Freetype" FREETYPE)
-if(DOWNLOAD_GTEST)
-  show_dependency_status("Git" GIT)
+if(CLIENT_COMPILE)
+  show_dependency_status("Curl" CURL TRUE)
+  show_dependency_status("Freetype" FREETYPE TRUE)
+  show_dependency_status("Ogg" OGG TRUE)
+  show_dependency_status("Opus" OPUS TRUE)
+  show_dependency_status("Opusfile" OPUSFILE TRUE)
+  show_dependency_status("PNG" PNG TRUE)
+  show_dependency_status("SDL2" SDL2 TRUE)
+  show_dependency_status("Wavpack" WAVPACK TRUE)
+  show_dependency_status("SQLite3" SQLite3 TRUE)
+  show_dependency_status("Zlib" ZLIB TRUE)
+  show_dependency_status("Glew" GLEW TRUE)
+  show_dependency_status("Vulkan" VULKAN ${VULKAN})
+  show_dependency_status("DiscordSdk" DiscordSdk ${DISCORD})
+  show_dependency_status("FFmpeg" FFMPEG ${VIDEORECORDER})
 endif()
-show_dependency_status("Glew" GLEW)
-show_dependency_status("GTest" GTEST)
-if(TARGET_OS AND TARGET_OS STREQUAL "mac")
-  show_dependency_status("Dmgbuild" DMGBUILD)
-endif()
-if(UPNP)
-  show_dependency_status("Miniupnpc" MINIUPNPC)
-endif()
-if(MYSQL)
-  show_dependency_status("MySQL" MYSQL)
-endif()
-show_dependency_status("Ogg" OGG)
-show_dependency_status("OpenSSL Crypto" CRYPTO)
-show_dependency_status("Opus" OPUS)
-show_dependency_status("Opusfile" OPUSFILE)
-show_dependency_status("PNG" PNG)
-show_dependency_status("PythonInterp" PYTHONINTERP)
-show_dependency_status("SDL2" SDL2)
-show_dependency_status("SQLite3" SQLite3)
-show_dependency_status("Wavpack" WAVPACK)
-show_dependency_status("Zlib" ZLIB)
-if(DISCORD)
-  show_dependency_status("DiscordSdk" DiscordSdk)
-endif()
-if(WEBSOCKETS)
-  show_dependency_status("Websockets" WEBSOCKETS)
-endif()
+show_dependency_status("Git" GIT ${DOWNLOAD_GTEST})
+show_dependency_status("GTest" GTEST FALSE)
+show_dependency_status("Websockets" WEBSOCKETS ${WEBSOCKETS})
 
-if(CLIENT AND VULKAN)
-  show_dependency_status("Vulkan" VULKAN)
-endif()
-
-if(NOT(CURL_FOUND))
-  message(SEND_ERROR "You must install Curl to compile ${CMAKE_PROJECT_NAME}")
-endif()
-if(NOT(PYTHONINTERP_FOUND))
-  message(SEND_ERROR "You must install Python to compile ${CMAKE_PROJECT_NAME}")
-endif()
-if(NOT(SQLite3_FOUND))
-  message(SEND_ERROR "You must install SQLite3 to compile ${CMAKE_PROJECT_NAME}")
-endif()
-
-if(MYSQL AND NOT(MYSQL_FOUND))
-  message(SEND_ERROR "You must install MySQL to compile the ${CMAKE_PROJECT_NAME} server with MySQL support")
-endif()
-
-if(WEBSOCKETS AND NOT(WEBSOCKETS_FOUND))
-  message(SEND_ERROR "You must install libwebsockets to compile the ${CMAKE_PROJECT_NAME} server with websocket support")
-endif()
-
-if(UPNP AND NOT(MINIUPNPC_FOUND))
-  message(SEND_ERROR "You must install miniupnpc to compile the ${CMAKE_PROJECT_NAME} server with UPnP support")
-endif()
-if(DISCORD AND NOT(DISCORDSDK_FOUND))
-  message(SEND_ERROR "You must install the Discord SDK to compile the ${CMAKE_PROJECT_NAME} client with Discord support")
-endif()
 if(DISCORD_DYNAMIC)
   if(TARGET_OS STREQUAL "windows" OR TARGET_OS STREQUAL "mac")
     message(SEND_ERROR "Dynamically loading the Discord SDK is only supported on Linux")
@@ -680,27 +639,11 @@ if(DISCORD_DYNAMIC)
     message(SEND_ERROR "You must enable the DISCORD flag if you want to link the Discord SDK")
   endif()
 endif()
-if(NOT(PNG_FOUND))
-  message(SEND_ERROR "You must install libpng to compile DDNet")
-endif()
-if(CLIENT AND NOT(FREETYPE_FOUND))
-  message(SEND_ERROR "You must install Freetype to compile the ${CMAKE_PROJECT_NAME} client")
-endif()
-if(CLIENT AND NOT(OGG_FOUND))
-  message(SEND_ERROR "You must install Ogg to compile the ${CMAKE_PROJECT_NAME} client")
-endif()
-if(CLIENT AND NOT(OPUS_FOUND))
-  message(SEND_ERROR "You must install Opus to compile the ${CMAKE_PROJECT_NAME} client")
-endif()
-if(CLIENT AND NOT(OPUSFILE_FOUND))
-  message(SEND_ERROR "You must install Opusfile to compile the ${CMAKE_PROJECT_NAME} client")
-endif()
-if(CLIENT AND NOT(SDL2_FOUND))
-  message(SEND_ERROR "You must install SDL2 to compile the ${CMAKE_PROJECT_NAME} client")
-endif()
+
 if(TARGET_OS STREQUAL "android" AND CLIENT AND NOT(CRYPTO_FOUND))
   message(SEND_ERROR "You must install OpenSSL to compile the ${CMAKE_PROJECT_NAME} client")
 endif()
+
 if(NOT(GTEST_FOUND))
   if(DOWNLOAD_GTEST)
     if(GIT_FOUND)
@@ -712,10 +655,6 @@ if(NOT(GTEST_FOUND))
   else()
     message(STATUS "To run the tests, you have to install GTest")
   endif()
-endif()
-
-if(CLIENT AND VULKAN AND NOT(VULKAN_FOUND))
-  message(SEND_ERROR "You must install Vulkan libraries to compile the ${CMAKE_PROJECT_NAME} client")
 endif()
 
 if(TARGET_OS STREQUAL "windows")
@@ -1553,7 +1492,7 @@ foreach(datafile ${DATA})
   file(COPY ${datafile} DESTINATION ${DESTINATION})
 endforeach()
 
-set(COPY_FILES
+set(COPY_FILES_CLIENT
   ${CURL_COPY_FILES}
   ${FREETYPE_COPY_FILES}
   ${OPUSFILE_COPY_FILES}
@@ -1566,8 +1505,13 @@ set(COPY_FILES
   ${VULKAN_COPY_FILES}
   ${EXCEPTION_HANDLING_COPY_FILES}
 )
-file(COPY ${COPY_FILES} DESTINATION .)
 
+set(COPY_FILES_SERVER
+  ${ICU_COPY_FILES}
+  ${MYSQL_COPY_FILES}
+)
+
+file(COPY ${COPY_FILES_CLIENT} ${COPY_FILES_SERVER} DESTINATION .)
 set(COPY_DIRS ${SDL2_COPY_DIRS})
 file(COPY ${COPY_DIRS} DESTINATION .)
 
@@ -1679,6 +1623,10 @@ set_src(BASE GLOB_RECURSE src/base
   math.h
   system.cpp
   system.h
+  tl/allocator.h
+  tl/array.h
+  tl/base.h
+  tl/range.h
   tl/threading.h
   unicode/confusables.cpp
   unicode/confusables.h
@@ -1709,7 +1657,6 @@ set_src(ENGINE_INTERFACE GLOB src/engine
   serverbrowser.h
   sound.h
   sqlite.h
-  steam.h
   storage.h
   textrender.h
   updater.h
@@ -1825,7 +1772,6 @@ set(DEPS ${DEP_JSON} ${DEP_MD5} ${ZLIB_DEP})
 set(LIBS
   ${CRYPTO_LIBRARIES}
   ${CURL_LIBRARIES}
-  ${SQLite3_LIBRARIES}
   ${WEBSOCKETS_LIBRARIES}
   ${ZLIB_LIBRARIES}
   ${PLATFORM_LIBS}
@@ -1853,22 +1799,7 @@ endif()
 # CLIENT
 ########################################################################
 
-if(CLIENT)
-  # Sources
-  set_src(STEAMAPI_SRC GLOB_RECURSE src/steam
-    steam_api_flat.h
-    steam_api_stub.cpp
-  )
-
-  if(STEAM OR TARGET_OS STREQUAL "windows" OR TARGET_OS STREQUAL "mac")
-    set(STEAMAPI_KIND SHARED)
-  else()
-    set(STEAMAPI_KIND STATIC)
-  endif()
-  set(TARGET_STEAMAPI steam_api)
-  add_library(${TARGET_STEAMAPI} ${STEAMAPI_KIND} ${STEAMAPI_SRC})
-  list(APPEND TARGETS_OWN ${TARGET_STEAMAPI})
-
+if(CLIENT_COMPILE)
   file(GLOB_RECURSE ENGINE_CLIENT "src/engine/client/*.cpp" "src/engine/client/*.h")
   file(GLOB_RECURSE GAME_CLIENT "src/game/client/*.cpp" "src/game/client/*.h")
   file(GLOB GAME_EDITOR "src/game/editor/*.cpp" "src/game/editor/*.h")
@@ -1878,7 +1809,30 @@ if(CLIENT)
 
   # Libraries
   set(LIBS_CLIENT
-    ${LIBS}
+ 
+  )
+
+  
+  set(CLIENT_INCLUDES_DIRS
+    ${FREETYPE_INCLUDE_DIRS}
+    ${GLEW_INCLUDE_DIRS}
+    ${OGG_INCLUDE_DIRS}
+    ${OPUSFILE_INCLUDE_DIRS}
+    ${OPUS_INCLUDE_DIRS}
+    ${PNG_INCLUDE_DIRS}
+    ${SDL2_INCLUDE_DIRS}
+    ${WAVPACK_INCLUDE_DIRS}
+    ${FFMPEG_INCLUDE_DIRS}
+    ${DISCORDSDK_INCLUDE_DIRS}
+    ${SQLite3_INCLUDE_DIRS}
+
+    ${VULKAN_INCLUDE_DIRS}
+
+    ${PLATFORM_CLIENT_INCLUDE_DIRS}
+  )
+  set(CLIENT_LIBRARIES
+   ${LIBS}
+    ${SQLite3_LIBRARIES}
     ${FREETYPE_LIBRARIES}
     ${GLEW_LIBRARIES}
     ${PNG_LIBRARIES}
@@ -1893,8 +1847,6 @@ if(CLIENT)
 
     ${VULKAN_LIBRARIES}
 
-    ${TARGET_STEAMAPI}
-
     ${PLATFORM_CLIENT_LIBS}
 
     # Add pthreads (on non-Windows) at the end, so that other libraries can depend
@@ -1904,9 +1856,9 @@ if(CLIENT)
 
   if(DISCORD)
     if(NOT DISCORD_DYNAMIC)
-      list(APPEND LIBS_CLIENT discord-shared)
+      list(APPEND CLIENT_LIBRARIES discord-shared)
     else()
-      list(APPEND LIBS_CLIENT ${CMAKE_DL_LIBS})
+      list(APPEND CLIENT_LIBRARIES ${CMAKE_DL_LIBS})
     endif()
   endif()
 
@@ -1916,7 +1868,6 @@ if(CLIENT)
       set(CLIENT_MANIFEST "other/manifest/DDNet.manifest")
     else()
       set(CLIENT_MANIFEST "other/manifest/DDNet.rc")
-      set_target_properties(${TARGET_STEAMAPI} PROPERTIES PREFIX "")
     endif()
   else()
     set(CLIENT_ICON)
@@ -1947,30 +1898,15 @@ if(CLIENT)
       $<TARGET_OBJECTS:game-shared>
     )
   endif()
-  target_link_libraries(${TARGET_CLIENT} ${LIBS_CLIENT})
+  target_link_libraries(${TARGET_CLIENT} ${CLIENT_LIBRARIES})
 
   if(MSVC)
     target_link_options(${TARGET_CLIENT} PRIVATE /ENTRY:mainCRTStartup)
   endif()
 
-  target_include_directories(${TARGET_CLIENT} SYSTEM PRIVATE
-    ${FREETYPE_INCLUDE_DIRS}
-    ${GLEW_INCLUDE_DIRS}
-    ${OGG_INCLUDE_DIRS}
-    ${OPUSFILE_INCLUDE_DIRS}
-    ${OPUS_INCLUDE_DIRS}
-    ${PNG_INCLUDE_DIRS}
-    ${SDL2_INCLUDE_DIRS}
-    ${WAVPACK_INCLUDE_DIRS}
-    ${FFMPEG_INCLUDE_DIRS}
-    ${DISCORDSDK_INCLUDE_DIRS}
+  target_include_directories(${TARGET_CLIENT} SYSTEM PRIVATE ${CLIENT_INCLUDES_DIRS})
 
-    ${VULKAN_INCLUDE_DIRS}
-
-    ${PLATFORM_CLIENT_INCLUDE_DIRS}
-  )
-
-  if(STEAMAPI_KIND STREQUAL SHARED OR DISCORD_DYNAMIC)
+  if(DISCORD_DYNAMIC)
     set_own_rpath(${TARGET_CLIENT})
   endif()
 
@@ -2012,7 +1948,7 @@ endif()
 # SERVER
 ########################################################################
 
-if(SERVER)
+if(SERVER_COMPILE)
   # Sources
   set_src(ANTIBOT_SRC GLOB src/antibot
     antibot_data.h
@@ -2022,8 +1958,9 @@ if(SERVER)
 
   file(GLOB_RECURSE ENGINE_SERVER "src/engine/server/*.cpp" "src/engine/server/*.h")
   file(GLOB_RECURSE GAME_SERVER "src/game/server/*.cpp" "src/game/server/*.h")
+  file(GLOB LOCALIZED_SERVER "src/teeother/components/*.cpp" "src/teeother/components/*.h" "src/teeother/tl/*.h" "src/teeother/system/*.h")
   set(GAME_GENERATED_SERVER "src/game/generated/server_data.cpp" "src/game/generated/server_data.h" "src/game/generated/wordlist.h")
-  set(SERVER_SRC ${ENGINE_SERVER} ${GAME_SERVER} ${GAME_GENERATED_SERVER})
+  set(SERVER_SRC ${ENGINE_SERVER} ${GAME_SERVER} ${LOCALIZED_SERVER} ${GAME_GENERATED_SERVER})
   if(TARGET_OS STREQUAL "windows")
     set(SERVER_ICON "other/icons/DDNet-Server.rc")
   else()
@@ -2037,14 +1974,18 @@ if(SERVER)
     list(APPEND TARGETS_OWN ${TARGET_ANTIBOT})
   endif()
 
-  # Libraries
-  set(LIBS_SERVER
+  set(SERVER_INCLUDES_DIRS
+    ${ICU_INCLUDE_DIRS}
+    ${MYSQL_INCLUDE_DIRS}
+    ${PNG_INCLUDE_DIRS}
+  )
+  set(SERVER_LIBRARIES
     ${LIBS}
+    ${ICU_LIBRARIES}
     ${MYSQL_LIBRARIES}
     ${TARGET_ANTIBOT}
     ${MINIUPNPC_LIBRARIES}
-    # Add pthreads (on non-Windows) at the end, so that other libraries can depend
-    # on it.
+    # Add pthreads (on non-Windows) at the end, so that other libraries can depend on it.
     ${CMAKE_THREAD_LIBS_INIT}
   )
 
@@ -2057,8 +1998,8 @@ if(SERVER)
     $<TARGET_OBJECTS:engine-shared>
     $<TARGET_OBJECTS:game-shared>
   )
-  target_link_libraries(${TARGET_SERVER} ${LIBS_SERVER})
-  target_include_directories(${TARGET_SERVER} PRIVATE ${PNG_INCLUDE_DIRS})
+  target_link_libraries(${TARGET_SERVER} ${SERVER_LIBRARIES})
+  target_include_directories(${TARGET_SERVER} PRIVATE ${SERVER_INCLUDES_DIRS})
   list(APPEND TARGETS_OWN ${TARGET_SERVER})
   list(APPEND TARGETS_LINK ${TARGET_SERVER})
 
@@ -2215,7 +2156,6 @@ if(GTEST_FOUND OR DOWNLOAD_GTEST)
     src/engine/client/sqlite.cpp
     src/engine/server/databases/connection.cpp
     src/engine/server/databases/connection.h
-    src/engine/server/databases/sqlite.cpp
     src/engine/server/databases/mysql.cpp
     src/engine/server/name_ban.cpp
     src/engine/server/name_ban.h
@@ -2234,8 +2174,22 @@ if(GTEST_FOUND OR DOWNLOAD_GTEST)
     $<TARGET_OBJECTS:game-shared>
     ${DEPS}
   )
-  target_link_libraries(${TARGET_TESTRUNNER} ${LIBS} ${MYSQL_LIBRARIES} ${PNG_LIBRARIES} ${GTEST_LIBRARIES})
-  target_include_directories(${TARGET_TESTRUNNER} SYSTEM PRIVATE ${GTEST_INCLUDE_DIRS})
+
+  set(TESTS_LIBRARIES
+    ${MYSQL_LIBRARIES} 
+    ${SQLite3_LIBRARIES} 
+    ${PNG_LIBRARIES} 
+    ${GTEST_LIBRARIES}
+  )
+
+  set(TESTS_INCLUDES_DIRS
+    ${GTEST_INCLUDE_DIRS}
+    ${SQLite3_INCLUDE_DIRS}
+  )
+
+
+  target_link_libraries(${TARGET_TESTRUNNER} ${LIBS} ${TESTS_LIBRARIES})
+  target_include_directories(${TARGET_TESTRUNNER} SYSTEM PRIVATE ${TESTS_INCLUDES_DIRS})
 
   list(APPEND TARGETS_OWN ${TARGET_TESTRUNNER})
   list(APPEND TARGETS_LINK ${TARGET_TESTRUNNER})
@@ -2374,7 +2328,6 @@ set(CPACK_SOURCE_FILES
   libraries/
   license.txt
   lsan.supp
-  memcheck.supp
   other/
   scripts/
   src/
@@ -2412,12 +2365,8 @@ endif()
 
 set(CPACK_TARGETS
   ${TARGET_CLIENT}
-  ${TARGET_SERVER}
   ${TARGET_TOOLS}
 )
-if(STEAMAPI_KIND STREQUAL SHARED)
-  list(APPEND CPACK_TARGETS ${TARGET_STEAMAPI})
-endif()
 set(CPACK_DIRS
   data
   ${COPY_DIRS}
@@ -2425,7 +2374,7 @@ set(CPACK_DIRS
 set(CPACK_FILES
   license.txt
   storage.cfg
-  ${COPY_FILES}
+  ${COPY_FILES_CLIENT} 
 )
 
 set(CPACK_GEN_FILES
@@ -2442,9 +2391,6 @@ if(NOT DEV)
   include(GNUInstallDirs)
   install(DIRECTORY data DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/ddnet COMPONENT data)
   install(TARGETS ${TARGET_CLIENT} DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT client)
-  if(STEAMAPI_KIND STREQUAL SHARED)
-    install(TARGETS ${TARGET_STEAMAPI} DESTINATION ${CMAKE_INSTALL_LIBDIR}/ddnet COMPONENT client)
-  endif()
   install(TARGETS ${TARGET_SERVER} DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT server)
   if(ANTIBOT)
     install(TARGETS ${TARGET_ANTIBOT} DESTINATION ${CMAKE_INSTALL_LIBDIR}/ddnet COMPONENT server)
@@ -2521,7 +2467,6 @@ if(CLIENT AND DMGBUILD)
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/libraries/ffmpeg/${LIB_DIR}/libavutil.57.dylib ${DMG_TMPDIR}/${TARGET_CLIENT}.app/Contents/Frameworks/
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/libraries/ffmpeg/${LIB_DIR}/libswresample.4.dylib ${DMG_TMPDIR}/${TARGET_CLIENT}.app/Contents/Frameworks/
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/libraries/ffmpeg/${LIB_DIR}/libswscale.6.dylib ${DMG_TMPDIR}/${TARGET_CLIENT}.app/Contents/Frameworks/
-    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/libsteam_api.dylib ${DMG_TMPDIR}/${TARGET_CLIENT}.app/Contents/Frameworks/
     COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/scripts/darwin_strip_rpath.py ${CMAKE_OTOOL} ${CMAKE_INSTALL_NAME_TOOL} ${DMG_TMPDIR}/${TARGET_CLIENT}.app/Contents/MacOS/${TARGET_CLIENT}
     COMMAND ${CMAKE_INSTALL_NAME_TOOL} -add_rpath @loader_path/../Frameworks ${DMG_TMPDIR}/${TARGET_CLIENT}.app/Contents/MacOS/${TARGET_CLIENT}
 
@@ -2538,7 +2483,6 @@ if(CLIENT AND DMGBUILD)
 
     DEPENDS
       ${TARGET_CLIENT}
-      ${TARGET_STEAMAPI}
       ${TARGET_SERVER_LAUNCHER}
       ${TARGET_SERVER}
       ${PROJECT_BINARY_DIR}/bundle/client/Info.plist
@@ -2577,9 +2521,9 @@ foreach(ext zip tar.gz tar.xz)
   endforeach()
   foreach(target ${CPACK_TARGETS})
     list(APPEND COPY_TARGET_COMMANDS COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${target}> ${TMPDIR}/)
-    if(NOT TARGET_OS STREQUAL "mac")
-      list(APPEND STRIP_TARGET_COMMANDS COMMAND strip -s ${TMPDIR}/$<TARGET_FILE_NAME:${target}>)
-    endif()
+    # if(NOT TARGET_OS STREQUAL "mac")
+    #   list(APPEND STRIP_TARGET_COMMANDS COMMAND strip -s ${TMPDIR}/$<TARGET_FILE_NAME:${target}>)
+    # endif() mb linux need check to actions
   endforeach()
 
   if(ext STREQUAL zip)
@@ -2715,7 +2659,7 @@ foreach(target ${TARGETS_OWN})
   target_include_directories(${target} PRIVATE ${PROJECT_BINARY_DIR}/src)
   target_include_directories(${target} PRIVATE src)
   target_compile_definitions(${target} PRIVATE $<$<CONFIG:Debug>:CONF_DEBUG>)
-  target_include_directories(${target} SYSTEM PRIVATE ${CURL_INCLUDE_DIRS} ${SQLite3_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS})
+  target_include_directories(${target} SYSTEM PRIVATE ${CURL_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS})
   target_compile_definitions(${target} PRIVATE GLEW_STATIC)
   if(CRYPTO_FOUND)
     target_compile_definitions(${target} PRIVATE CONF_OPENSSL)
@@ -2735,24 +2679,11 @@ foreach(target ${TARGETS_OWN})
   if(ANTIBOT)
     target_compile_definitions(${target} PRIVATE CONF_ANTIBOT)
   endif()
-  if(HEADLESS_CLIENT)
-    target_compile_definitions(${target} PRIVATE CONF_HEADLESS_CLIENT)
-  endif()
-  if(MYSQL)
-    target_compile_definitions(${target} PRIVATE CONF_MYSQL)
-    target_include_directories(${target} SYSTEM PRIVATE ${MYSQL_INCLUDE_DIRS})
-  endif()
-  if(TEST_MYSQL)
-    target_compile_definitions(${target} PRIVATE CONF_TEST_MYSQL)
-  endif()
-  if(AUTOUPDATE AND NOT STEAM)
+  if(AUTOUPDATE)
     target_compile_definitions(${target} PRIVATE CONF_AUTOUPDATE)
   endif()
-  if(INFORM_UPDATE AND NOT STEAM)
+  if(INFORM_UPDATE)
     target_compile_definitions(${target} PRIVATE CONF_INFORM_UPDATE)
-  endif()
-  if(STEAM)
-    target_compile_definitions(${target} PRIVATE PLATFORM_SUFFIX="-steam")
   endif()
   if(DISCORD)
     target_compile_definitions(${target} PRIVATE CONF_DISCORD)

@@ -120,6 +120,7 @@ public:
 
 	bool m_Cheated;
 	virtual void SetFlagMask(int FlagMask) = 0;
+	virtual bool IsCommand(const char *pStr, int FlagMask) = 0;
 };
 
 extern IConsole *CreateConsole(int FlagMask);

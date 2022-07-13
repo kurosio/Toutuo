@@ -16,6 +16,8 @@
 #include "gameworld.h"
 #include "teehistorian.h"
 
+#include "server-core/structcontext.h"
+
 #include <memory>
 #include <string>
 
@@ -61,6 +63,9 @@ struct CScoreRandomMapResult;
 
 class CGameContext : public IGameServer
 {
+	friend class CCommandsChatProcessor;
+	friend class CCommandsRconProcessor;
+
 	IServer *m_pServer;
 	CConfig *m_pConfig;
 	IConsole *m_pConsole;
@@ -157,6 +162,7 @@ public:
 	CGameWorld m_World;
 
 	// helper functions
+	class CPlayer *GetPlayer(int ClientID);
 	class CCharacter *GetPlayerChar(int ClientID);
 	bool EmulateBug(int Bug);
 	std::vector<SSwitchers> &Switchers() { return m_World.m_Core.m_vSwitchers; }
@@ -204,6 +210,7 @@ public:
 	void CreateSound(vec2 Pos, int Sound, int64_t Mask = -1);
 	void CreateSoundGlobal(int Sound, int Target = -1);
 
+	// chat
 	enum
 	{
 		CHAT_ALL = -2,
@@ -213,12 +220,34 @@ public:
 		CHAT_WHISPER_SEND = 2,
 		CHAT_WHISPER_RECV = 3,
 	};
+	void Chat(int ClientID, const char *pText, ...);
+
+	void SendChatTarget(int To, const char *pText);
+	void SendChat(int ClientID, int Team, const char *pText, int SpamProtectionClientID = -1);
+	
+	// broadcast
+private:
+	struct CBroadcastState
+	{
+		int m_NoChangeTick;
+		char m_aPrevMessage[MAX_BROADCAST_SIZE];
+
+		int m_Priority;
+		char m_aNextMessage[MAX_BROADCAST_SIZE];
+
+		int m_LifeSpanTick;
+		int m_TimedPriority;
+		char m_aTimedMessage[MAX_BROADCAST_SIZE];
+	};
+	CBroadcastState m_aBroadcastStates[MAX_PLAYERS];
+
+public:
+	void AddBroadcast(int ClientID, const char *pText, int Priority, int LifeSpan);
+	void Broadcast(int ClientID, int Priority, int LifeSpan, const char *pText, ...);
+	void BroadcastTick(int ClientID);
 
 	// network
 	void CallVote(int ClientID, const char *pDesc, const char *pCmd, const char *pReason, const char *pChatmsg);
-	void SendChatTarget(int To, const char *pText);
-	void SendChat(int ClientID, int Team, const char *pText, int SpamProtectionClientID = -1);
-	void SendStartWarning(int ClientID, const char *pMessage);
 	void SendEmoticon(int ClientID, int Emoticon);
 	void SendWeaponPickup(int ClientID, int Weapon);
 	void SendMotd(int ClientID);
@@ -294,66 +323,6 @@ private:
 	// starting 1 to make 0 the special value "no client id"
 	uint32_t NextUniqueClientID = 1;
 	bool m_VoteWillPass;
-
-	//DDRace Console Commands
-	static void ConEndlessHook(IConsole::IResult *pResult, void *pUserData);
-	static void ConUnEndlessHook(IConsole::IResult *pResult, void *pUserData);
-	static void ConJetpack(IConsole::IResult *pResult, void *pUserData);
-	static void ConUnJetpack(IConsole::IResult *pResult, void *pUserData);
-
-	void MoveCharacter(int ClientID, int X, int Y, bool Raw = false);
-	static void ConGoLeft(IConsole::IResult *pResult, void *pUserData);
-	static void ConGoRight(IConsole::IResult *pResult, void *pUserData);
-	static void ConGoUp(IConsole::IResult *pResult, void *pUserData);
-	static void ConGoDown(IConsole::IResult *pResult, void *pUserData);
-	static void ConMove(IConsole::IResult *pResult, void *pUserData);
-	static void ConMoveRaw(IConsole::IResult *pResult, void *pUserData);
-
-	static void ConToTeleporter(IConsole::IResult *pResult, void *pUserData);
-	static void ConToCheckTeleporter(IConsole::IResult *pResult, void *pUserData);
-	void Teleport(CCharacter *pChr, vec2 Pos);
-	static void ConTeleport(IConsole::IResult *pResult, void *pUserData);
-
-	static void ConCredits(IConsole::IResult *pResult, void *pUserData);
-	static void ConInfo(IConsole::IResult *pResult, void *pUserData);
-	static void ConHelp(IConsole::IResult *pResult, void *pUserData);
-	static void ConSettings(IConsole::IResult *pResult, void *pUserData);
-	static void ConRules(IConsole::IResult *pResult, void *pUserData);
-	static void ConTogglePause(IConsole::IResult *pResult, void *pUserData);
-	static void ConTogglePauseVoted(IConsole::IResult *pResult, void *pUserData);
-	static void ConToggleSpec(IConsole::IResult *pResult, void *pUserData);
-	static void ConToggleSpecVoted(IConsole::IResult *pResult, void *pUserData);
-
-	static void ConDND(IConsole::IResult *pResult, void *pUserData);
-	static void ConTimeout(IConsole::IResult *pResult, void *pUserData);
-	static void ConMe(IConsole::IResult *pResult, void *pUserData);
-	static void ConWhisper(IConsole::IResult *pResult, void *pUserData);
-	static void ConConverse(IConsole::IResult *pResult, void *pUserData);
-	static void ConSetEyeEmote(IConsole::IResult *pResult, void *pUserData);
-	static void ConEyeEmote(IConsole::IResult *pResult, void *pUserData);
-	static void ConShowOthers(IConsole::IResult *pResult, void *pUserData);
-	static void ConShowAll(IConsole::IResult *pResult, void *pUserData);
-	static void ConSpecTeam(IConsole::IResult *pResult, void *pUserData);
-	static void ConNinjaJetpack(IConsole::IResult *pResult, void *pUserData);
-	static void ConSayTime(IConsole::IResult *pResult, void *pUserData);
-	static void ConSayTimeAll(IConsole::IResult *pResult, void *pUserData);
-	static void ConTime(IConsole::IResult *pResult, void *pUserData);
-	static void ConSetTimerType(IConsole::IResult *pResult, void *pUserData);
-	static void ConTele(IConsole::IResult *pResult, void *pUserData);
-	static void ConProtectedKill(IConsole::IResult *pResult, void *pUserData);
-
-	static void ConVoteMute(IConsole::IResult *pResult, void *pUserData);
-	static void ConVoteUnmute(IConsole::IResult *pResult, void *pUserData);
-	static void ConVoteMutes(IConsole::IResult *pResult, void *pUserData);
-	static void ConMute(IConsole::IResult *pResult, void *pUserData);
-	static void ConMuteID(IConsole::IResult *pResult, void *pUserData);
-	static void ConMuteIP(IConsole::IResult *pResult, void *pUserData);
-	static void ConUnmute(IConsole::IResult *pResult, void *pUserData);
-	static void ConUnmuteID(IConsole::IResult *pResult, void *pUserData);
-	static void ConMutes(IConsole::IResult *pResult, void *pUserData);
-	static void ConModerate(IConsole::IResult *pResult, void *pUserData);
-
-	static void ConList(IConsole::IResult *pResult, void *pUserData);
 
 	enum
 	{

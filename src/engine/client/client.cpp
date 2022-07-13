@@ -29,7 +29,6 @@
 #include <engine/map.h>
 #include <engine/serverbrowser.h>
 #include <engine/sound.h>
-#include <engine/steam.h>
 #include <engine/storage.h>
 #include <engine/textrender.h>
 
@@ -659,12 +658,10 @@ void CClient::SetState(int s)
 		if(s == IClient::STATE_ONLINE)
 		{
 			Discord()->SetGameInfo(m_ServerAddress, m_aCurrentMap);
-			Steam()->SetGameInfo(m_ServerAddress, m_aCurrentMap);
 		}
 		else if(Old == IClient::STATE_ONLINE)
 		{
 			Discord()->ClearGameInfo();
-			Steam()->ClearGameInfo();
 		}
 	}
 }
@@ -2826,12 +2823,6 @@ void CClient::Update()
 		GameClient()->OnUpdate();
 
 	Discord()->Update();
-	Steam()->Update();
-	if(Steam()->GetConnectAddress())
-	{
-		HandleConnectAddress(Steam()->GetConnectAddress());
-		Steam()->ClearConnectAddress();
-	}
 
 	if(m_ReconnectTime > 0 && time_get() > m_ReconnectTime)
 	{
@@ -2873,7 +2864,6 @@ void CClient::InitInterfaces()
 	m_pUpdater = Kernel()->RequestInterface<IUpdater>();
 #endif
 	m_pDiscord = Kernel()->RequestInterface<IDiscord>();
-	m_pSteam = Kernel()->RequestInterface<ISteam>();
 	m_pStorage = Kernel()->RequestInterface<IStorage>();
 
 	m_DemoEditor.Init(m_pGameClient->NetVersion(), &m_SnapshotDelta, m_pConsole, m_pStorage);
@@ -3003,11 +2993,6 @@ void CClient::Run()
 	// load data
 	if(!LoadData())
 		return;
-
-	if(Steam()->GetPlayerName())
-	{
-		str_copy(g_Config.m_SteamName, Steam()->GetPlayerName(), sizeof(g_Config.m_SteamName));
-	}
 
 	GameClient()->OnInit();
 	m_ServerBrowser.OnInit();
@@ -4312,10 +4297,35 @@ void CClient::RegisterCommands()
 	m_pConsole->Chain("gfx_borderless", ConchainWindowBordered, this);
 	m_pConsole->Chain("gfx_vsync", ConchainWindowVSync, this);
 
-	// DDRace
+	// DDRace only the description of the command for ddnet
+#define DDNET_COMMAND_INFO(name, params, flags, help) m_pConsole->Register(name, params, flags, 0, 0, help);
+	DDNET_COMMAND_INFO("totele", "i[number]", CFGFLAG_SERVER | CMDFLAG_TEST, "Teleports you to teleporter v")
+	DDNET_COMMAND_INFO("totelecp", "i[number]", CFGFLAG_SERVER | CMDFLAG_TEST,  "Teleports you to checkpoint teleporter v")
+	DDNET_COMMAND_INFO("tele", "?i[id] ?i[id]", CFGFLAG_SERVER | CMDFLAG_TEST,  "Teleports player i (or you) to player i (or you to where you look at)")
+	DDNET_COMMAND_INFO("jetpack", "", CFGFLAG_SERVER | CMDFLAG_TEST,  "Gives jetpack to you")
+	DDNET_COMMAND_INFO("unjetpack", "", CFGFLAG_SERVER | CMDFLAG_TEST,  "Removes the jetpack from you")
+	DDNET_COMMAND_INFO("endless_hook", "", CFGFLAG_SERVER | CMDFLAG_TEST,  "Gives you endless hook")
+	DDNET_COMMAND_INFO("unendless_hook", "", CFGFLAG_SERVER | CMDFLAG_TEST,  "Removes endless hook from you")
+	DDNET_COMMAND_INFO("left", "", CFGFLAG_SERVER | CMDFLAG_TEST,  "Makes you move 1 tile left")
+	DDNET_COMMAND_INFO("right", "", CFGFLAG_SERVER | CMDFLAG_TEST,  "Makes you move 1 tile right")
+	DDNET_COMMAND_INFO("up", "", CFGFLAG_SERVER | CMDFLAG_TEST,  "Makes you move 1 tile up")
+	DDNET_COMMAND_INFO("down", "", CFGFLAG_SERVER | CMDFLAG_TEST,  "Makes you move 1 tile down")
 
-#define CONSOLE_COMMAND(name, params, flags, callback, userdata, help) m_pConsole->Register(name, params, flags, 0, 0, help);
-#include <game/ddracecommands.h>
+	DDNET_COMMAND_INFO("move", "i[x] i[y]", CFGFLAG_SERVER | CMDFLAG_TEST, "Moves to the tile with x/y-number ii")
+	DDNET_COMMAND_INFO("move_raw", "i[x] i[y]", CFGFLAG_SERVER | CMDFLAG_TEST,  "Moves to the point with x/y-coordinates ii")
+
+	DDNET_COMMAND_INFO("vote_mute", "v[id] i[seconds]", CFGFLAG_SERVER, "Remove v's right to vote for i seconds")
+	DDNET_COMMAND_INFO("vote_unmute", "v[id]", CFGFLAG_SERVER, "Give back v's right to vote.")
+	DDNET_COMMAND_INFO("vote_mutes", "", CFGFLAG_SERVER, "List the current active vote mutes.")
+	DDNET_COMMAND_INFO("mute", "", CFGFLAG_SERVER, "")
+	DDNET_COMMAND_INFO("muteid", "v[id] i[seconds] ?r[reason]", CFGFLAG_SERVER, "Mute player with id")
+	DDNET_COMMAND_INFO("muteip", "s[ip] i[seconds] ?r[reason]", CFGFLAG_SERVER, "Mute player with IP address")
+	DDNET_COMMAND_INFO("unmute", "i[muteid]", CFGFLAG_SERVER, "Unmute mute with number from \"mutes\"")
+	DDNET_COMMAND_INFO("unmuteid", "v[id]", CFGFLAG_SERVER, "Unmute player with id")
+	DDNET_COMMAND_INFO("mutes", "", CFGFLAG_SERVER, "")
+	DDNET_COMMAND_INFO("moderate", "", CFGFLAG_SERVER, "Enables/disables active moderator mode for the player")
+	DDNET_COMMAND_INFO("vote_no", "", CFGFLAG_SERVER, "Same as \"vote no\"")
+#undef DDNET_COMMAND_INFO
 }
 
 static CClient *CreateClient()
@@ -4430,7 +4440,6 @@ int main(int argc, const char **argv)
 	IEngineTextRender *pEngineTextRender = CreateEngineTextRender();
 	IEngineMap *pEngineMap = CreateEngineMap();
 	IDiscord *pDiscord = CreateDiscord();
-	ISteam *pSteam = CreateSteam();
 
 	pFutureAssertionLogger->Set(CreateAssertionLogger(pStorage, GAME_NAME));
 #if defined(CONF_EXCEPTION_HANDLING)
@@ -4472,7 +4481,6 @@ int main(int argc, const char **argv)
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(CreateGameClient());
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(pStorage);
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(pDiscord);
-		RegisterFail = RegisterFail || !pKernel->RegisterInterface(pSteam);
 
 		if(RegisterFail)
 		{
@@ -4535,12 +4543,6 @@ int main(int argc, const char **argv)
 		pClient->HandleMapPath(argv[1]);
 	else if(argc > 1)
 		pConsole->ParseArguments(argc - 1, (const char **)&argv[1]);
-
-	if(pSteam->GetConnectAddress())
-	{
-		pClient->HandleConnectAddress(pSteam->GetConnectAddress());
-		pSteam->ClearConnectAddress();
-	}
 
 	log_set_loglevel((LEVEL)g_Config.m_Loglevel);
 	if(g_Config.m_Logfile[0])

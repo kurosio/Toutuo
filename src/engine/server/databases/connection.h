@@ -100,7 +100,6 @@ protected:
 int MysqlInit();
 void MysqlUninit();
 
-std::unique_ptr<IDbConnection> CreateSqliteConnection(const char *pFilename, bool Setup);
 // Returns nullptr if MySQL support is not compiled in.
 std::unique_ptr<IDbConnection> CreateMysqlConnection(
 	const char *pDatabase,
