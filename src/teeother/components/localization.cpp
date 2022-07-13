@@ -138,7 +138,7 @@ bool CLocalization::CLanguage::Load(CLocalization *pLocalization, IStorage *pSto
 	const json_value& rStart = (*pJsonData)["translation"];
 	if(rStart.type == json_array)
 	{
-		for(unsigned i = 0; i < rStart.u.array.length; ++i)
+		for(int i = 0; i < static_cast<int>(rStart.u.array.length); ++i)
 		{
 			const char* pKey = rStart[i]["key"];
 			if(pKey && pKey[0])
@@ -324,7 +324,7 @@ bool CLocalization::Init()
 	const json_value& rStart = (*pJsonData)["language indices"];
 	if(rStart.type == json_array)
 	{
-		for(unsigned i = 0; i < rStart.u.array.length; ++i)
+		for(int i = 0; i < static_cast<int>(rStart.u.array.length); ++i)
 		{
 			CLanguage*& pLanguage = m_pLanguages.increment();
 			pLanguage = new CLanguage((const char*)rStart[i]["name"], (const char*)rStart[i]["file"], (const char*)rStart[i]["parent"]);
