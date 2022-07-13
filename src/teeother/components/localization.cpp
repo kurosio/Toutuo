@@ -362,20 +362,9 @@ IOHANDLE CLocalization::GetDefaultIndexFile()
 		return nullptr;
 	}
 
-	const char* pBuffer = nullptr;
-#define _WRLINE(text) pBuffer = text; \
-	io_write(File, pBuffer, str_length(pBuffer)), io_write_newline(File);
-
-	_WRLINE("{\"language indices\": [")
-	_WRLINE("\t")
-	_WRLINE("\t{")
-	_WRLINE("\t\t\"file\": \"en\",")
-	_WRLINE("\t\t\"name\": \"English\"")
-	_WRLINE("\t}")
-	_WRLINE("]")
-	_WRLINE("}")
+	const char *pBuffer = "{\"language indices\": [\n\t{\n\t\t\"file\": \"en\",\n\t\t\"name\": \"English\"\n\t}\n]\n}";
+	io_write(File, pBuffer, str_length(pBuffer));
 	io_close(File);
-#undef _WRLINE
 
 	File = Storage()->OpenFile(pFilename, IOFLAG_READ, IStorage::TYPE_ALL);
 	return File;
