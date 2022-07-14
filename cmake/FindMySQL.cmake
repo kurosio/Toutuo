@@ -1,4 +1,6 @@
 set(MYSQL_CPPCONN_LIBRARY)
+set(Boost_INCLUDE_DIRS)
+
 if(NOT CMAKE_CROSSCOMPILING)
   find_program(MYSQL_CONFIG
     NAMES mysql_config mariadb_config
@@ -54,6 +56,8 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(MySQL DEFAULT_MSG MYSQL_LIBRARY MYSQL_INCLUDEDIR)
 
 if(NOT(MYSQL_FOUND))
+  set(Boost_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/libraries/boost/include")
+
   find_library(MYSQL_LIBRARY
     NAMES "mysqlclient" "mysqlclient_r" "mariadbclient"
     HINTS ${HINTS_MYSQL_LIBDIR} ${MYSQL_CONFIG_LIBRARY_PATH}
@@ -76,18 +80,16 @@ if(NOT(MYSQL_FOUND))
 
   find_package_handle_standard_args(MySQL DEFAULT_MSG MYSQL_LIBRARY MYSQL_INCLUDEDIR)
 
-  if(MYSQL_FOUND)	
-    set(Boost_INCLUDE_DIRS "libraries/boost/include")
-
+  if(MYSQL_FOUND)
     if(TARGET_OS AND TARGET_OS STREQUAL "windows")
       set(MYSQL_COPY_FILES "${EXTRA_MYSQL_LIBDIR}/mysqlcppconn-7-vs14.dll")
     else()
       set(MYSQL_COPY_FILES)
     endif()
   endif()
-else()
-  set(MYSQL_LIBRARIES ${MYSQL_LIBRARY} ${MYSQL_CPPCONN_LIBRARY})
-  set(MYSQL_INCLUDE_DIRS ${MYSQL_INCLUDEDIR})
-  
-  mark_as_advanced(MYSQL_INCLUDEDIR MYSQL_LIBRARY)
 endif()
+
+set(MYSQL_LIBRARIES ${MYSQL_LIBRARY} ${MYSQL_CPPCONN_LIBRARY})
+set(MYSQL_INCLUDE_DIRS ${MYSQL_INCLUDEDIR} ${Boost_INCLUDE_DIRS})
+
+mark_as_advanced(MYSQL_INCLUDEDIR MYSQL_LIBRARY)
