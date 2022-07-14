@@ -232,18 +232,18 @@ private:
 		int m_NoChangeTick;
 		char m_aPrevMessage[MAX_BROADCAST_SIZE];
 
-		int m_Priority;
+		GamePriority m_Priority;
 		char m_aNextMessage[MAX_BROADCAST_SIZE];
 
 		int m_LifeSpanTick;
-		int m_TimedPriority;
+		GamePriority m_TimedPriority;
 		char m_aTimedMessage[MAX_BROADCAST_SIZE];
 	};
 	CBroadcastState m_aBroadcastStates[MAX_PLAYERS];
 
 public:
-	void AddBroadcast(int ClientID, const char *pText, int Priority, int LifeSpan);
-	void Broadcast(int ClientID, int Priority, int LifeSpan, const char *pText, ...);
+	void AddBroadcast(int ClientID, const char *pText, GamePriority Priority, int LifeSpan);
+	void Broadcast(int ClientID, GamePriority Priority, int LifeSpan, const char *pText, ...);
 	void BroadcastTick(int ClientID);
 
 	// network

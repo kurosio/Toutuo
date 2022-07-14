@@ -312,7 +312,7 @@ void CCommandsRconProcessor::ConBroadcast(IConsole::IResult *pResult, void *pUse
 			aBuf[j] = aBuf[i];
 	}
 	aBuf[j] = '\0';
-	pSelf->Broadcast(-1, B_GLOBAL_INFORMATION, 100, aBuf);
+	pSelf->Broadcast(-1, GamePriority::GLOBAL, 100, aBuf);
 }
 
 void CCommandsRconProcessor::ConSay(IConsole::IResult *pResult, void *pUserData)

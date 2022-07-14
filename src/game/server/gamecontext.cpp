@@ -501,7 +501,7 @@ void CGameContext::Chat(int ClientID, const char *pText, ...)
 	va_end(VarArgs);
 }
 
-void CGameContext::AddBroadcast(int ClientID, const char *pText, int Priority, int LifeSpan)
+void CGameContext::AddBroadcast(int ClientID, const char *pText, GamePriority Priority, int LifeSpan)
 {
 	if(ClientID < 0 || ClientID >= MAX_PLAYERS)
 		return;
@@ -526,7 +526,7 @@ void CGameContext::AddBroadcast(int ClientID, const char *pText, int Priority, i
 }
 
 // formatted broadcast
-void CGameContext::Broadcast(int ClientID, int Priority, int LifeSpan, const char *pText, ...)
+void CGameContext::Broadcast(int ClientID, GamePriority Priority, int LifeSpan, const char *pText, ...)
 {
 	int Start = (ClientID < 0 ? 0 : ClientID);
 	int End = (ClientID < 0 ? MAX_PLAYERS : ClientID + 1);
@@ -577,20 +577,20 @@ void CGameContext::BroadcastTick(int ClientID)
 		if(m_aBroadcastStates[ClientID].m_LifeSpanTick <= 0)
 		{
 			m_aBroadcastStates[ClientID].m_aTimedMessage[0] = 0;
-			m_aBroadcastStates[ClientID].m_TimedPriority = 0;
+			m_aBroadcastStates[ClientID].m_TimedPriority = GamePriority::BASIC;
 		}
 		m_aBroadcastStates[ClientID].m_aNextMessage[0] = 0;
-		m_aBroadcastStates[ClientID].m_Priority = 0;
+		m_aBroadcastStates[ClientID].m_Priority = GamePriority::BASIC;
 	}
 	else
 	{
 		m_aBroadcastStates[ClientID].m_NoChangeTick = 0;
 		m_aBroadcastStates[ClientID].m_LifeSpanTick = 0;
-		m_aBroadcastStates[ClientID].m_Priority = 0;
-		m_aBroadcastStates[ClientID].m_TimedPriority = 0;
 		m_aBroadcastStates[ClientID].m_aPrevMessage[0] = 0;
 		m_aBroadcastStates[ClientID].m_aNextMessage[0] = 0;
 		m_aBroadcastStates[ClientID].m_aTimedMessage[0] = 0;
+		m_aBroadcastStates[ClientID].m_Priority = GamePriority::BASIC;
+		m_aBroadcastStates[ClientID].m_TimedPriority = GamePriority::BASIC;
 	}
 }
 
