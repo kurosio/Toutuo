@@ -24,7 +24,7 @@ find_library(OPENSSL_CRYPTO_LIBRARY
 
 # includes
 set_extra_dirs_include(OPENSSL openssl "${OPENSSL_CRYPTO_LIBRARY}")
-find_path(OPENSSL_INCLUDEDIR 
+find_path(OPENSSL_INCLUDE_DIR 
   NAMES "openssl/conf.h"
   HINTS ${PC_CRYPTO_INCLUDEDIR} ${PC_CRYPTO_INCLUDE_DIR} ${HINTS_OPENSSL_INCLUDEDIR} 
   PATHS ${PATHS_OPENSSL_INCLUDEDIR}
@@ -32,18 +32,17 @@ find_path(OPENSSL_INCLUDEDIR
 
 # mark found
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(OpenSSL DEFAULT_MSG OPENSSL_CRYPTO_LIBRARY OPENSSL_INCLUDEDIR)
-mark_as_advanced(OPENSSL_CRYPTO_LIBRARY OPENSSL_INCLUDEDIR)
+find_package_handle_standard_args(OpenSSL DEFAULT_MSG OPENSSL_CRYPTO_LIBRARY OPENSSL_INCLUDE_DIR)
+mark_as_advanced(OPENSSL_CRYPTO_LIBRARY OPENSSL_INCLUDE_DIR)
 
-# so that we have the same variables for all searches
-set(OPENSSL_LIBRARY)
-set(OPENSSL_INCLUDE_DIRS)
+# bundled by default https://cmake.org/cmake/help/latest/module/FindOpenSSL.html
+set(OPENSSL_SSL_LIBRARIES ${OPENSSL_SSL_LIBRARY})
+set(OPENSSL_CRYPTO_LIBRARIES ${OPENSSL_CRYPTO_LIBRARY})
+set(OPENSSL_LIBRARIES ${OPENSSL_SSL_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARY})
+set(OPENSSL_INCLUDE_DIRS ${OPENSSL_INCLUDE_DIR})
 
-if(OPENSSL_FOUND)
-  # bundled
-  set(OPENSSL_LIBRARY ${OPENSSL_CRYPTO_LIBRARY} ${OPENSSL_SSL_LIBRARY})
-  set(OPENSSL_INCLUDE_DIRS ${OPENSSL_INCLUDEDIR})
-  is_bundled(OPENSSL_BUNDLED "${OPENSSL_LIBRARY}")
+if(OPENSSL_FOUND)  
+  is_bundled(OPENSSL_BUNDLED "${OPENSSL_LIBRARIES}")
   
   # copy dll files
   set(OPENSSL_COPY_FILES)
@@ -62,10 +61,7 @@ else()
   set(CMAKE_MODULE_PATH ${OWN_CMAKE_MODULE_PATH})
   
   # https://cmake.org/cmake/help/v3.6/module/FindOpenSSL.html
-  if(OPENSSL_FOUND)
-    set(OPENSSL_LIBRARY ${OPENSSL_LIBRARIES})
-    set(OPENSSL_INCLUDE_DIRS ${OPENSSL_INCLUDE_DIR})
-  else()
+  if(NOT(OPENSSL_FOUND))
     set(OPENSSL_SSL_LIBRARY "")
     set(OPENSSL_CRYPTO_LIBRARY "")
   endif()

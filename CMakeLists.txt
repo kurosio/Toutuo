@@ -530,7 +530,6 @@ if(WEBSOCKETS)
 endif()
 find_package(GTest)
 find_package(ZLIB)
-find_package(Crypto)
 find_package(Curl)
 find_package(MySQL)
 find_package(ICU)
@@ -539,6 +538,7 @@ if(UPNP)
   find_package(Miniupnpc)
 endif()
 
+find_package(OpenSSL)
 find_package(Opus)
 find_package(Opusfile)
 find_package(SDL2)
@@ -608,10 +608,10 @@ if(TARGET_OS AND TARGET_OS STREQUAL "mac")
   show_dependency_status("Dmgbuild" DMGBUILD TRUE)
 endif()
 if(SERVER_COMPILE)
+  show_dependency_status("OpenSSL" OPENSSL TRUE)
   show_dependency_status("MySQL" MYSQL TRUE)
   show_dependency_status("ICU" ICU TRUE)
   show_dependency_status("Miniupnpc" MINIUPNPC ${UPNP})
-  show_dependency_status("OpenSSL Crypto" CRYPTO FALSE)
 endif()
 if(CLIENT_COMPILE)
   show_dependency_status("Curl" CURL TRUE)
@@ -642,7 +642,7 @@ if(DISCORD_DYNAMIC)
   endif()
 endif()
 
-if(TARGET_OS STREQUAL "android" AND CLIENT AND NOT(CRYPTO_FOUND))
+if(TARGET_OS STREQUAL "android" AND CLIENT AND NOT(OPENSSL_FOUND))
   message(SEND_ERROR "You must install OpenSSL to compile the ${CMAKE_PROJECT_NAME} client")
 endif()
 
@@ -770,7 +770,7 @@ add_library(md5 EXCLUDE_FROM_ALL OBJECT ${DEP_MD5_SRC})
 list(APPEND TARGETS_DEP json md5)
 set(DEP_JSON $<TARGET_OBJECTS:json>)
 set(DEP_MD5)
-if(NOT CRYPTO_FOUND)
+if(NOT OPENSSL_FOUND)
   set(DEP_MD5 $<TARGET_OBJECTS:md5>)
 endif()
 
@@ -1505,6 +1505,7 @@ set(COPY_FILES_CLIENT
 
 set(COPY_FILES_SERVER
   ${ICU_COPY_FILES}
+  ${OPENSSL_COPY_FILES}
   ${MYSQL_COPY_FILES}
 )
 
@@ -1767,7 +1768,6 @@ set(DEPS ${DEP_JSON} ${DEP_MD5} ${ZLIB_DEP})
 
 # Libraries
 set(LIBS
-  ${CRYPTO_LIBRARIES}
   ${CURL_LIBRARIES}
   ${WEBSOCKETS_LIBRARIES}
   ${ZLIB_LIBRARIES}
@@ -1804,12 +1804,6 @@ if(CLIENT_COMPILE)
   set(CLIENT_SRC ${ENGINE_CLIENT} ${PLATFORM_CLIENT} ${GAME_CLIENT} ${GAME_EDITOR} ${GAME_GENERATED_CLIENT})
   set(DEPS_CLIENT ${DEPS} ${GLEW_DEP} ${WAVPACK_DEP})
 
-  # Libraries
-  set(LIBS_CLIENT
- 
-  )
-
-  
   set(CLIENT_INCLUDES_DIRS
     ${FREETYPE_INCLUDE_DIRS}
     ${GLEW_INCLUDE_DIRS}
@@ -1828,7 +1822,7 @@ if(CLIENT_COMPILE)
     ${PLATFORM_CLIENT_INCLUDE_DIRS}
   )
   set(CLIENT_LIBRARIES
-   ${LIBS}
+    ${LIBS}
     ${SQLite3_LIBRARIES}
     ${FREETYPE_LIBRARIES}
     ${GLEW_LIBRARIES}
@@ -1978,6 +1972,7 @@ if(SERVER_COMPILE)
   )
   set(SERVER_LIBRARIES
     ${LIBS}
+    ${OPENSSL_CRYPTO_LIBRARIES}
     ${ICU_LIBRARIES}
     ${MYSQL_LIBRARIES}
     ${TARGET_ANTIBOT}
@@ -2660,9 +2655,9 @@ foreach(target ${TARGETS_OWN})
   target_compile_definitions(${target} PRIVATE $<$<CONFIG:Debug>:CONF_DEBUG>)
   target_include_directories(${target} SYSTEM PRIVATE ${CURL_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS})
   target_compile_definitions(${target} PRIVATE GLEW_STATIC)
-  if(CRYPTO_FOUND)
+  if(OPENSSL_FOUND)
     target_compile_definitions(${target} PRIVATE CONF_OPENSSL)
-    target_include_directories(${target} SYSTEM PRIVATE ${CRYPTO_INCLUDE_DIRS})
+    target_include_directories(${target} SYSTEM PRIVATE ${OPENSSL_INCLUDE_DIRS})
   endif()
   if(WEBSOCKETS)
     target_compile_definitions(${target} PRIVATE CONF_WEBSOCKETS)
