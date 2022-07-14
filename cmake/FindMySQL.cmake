@@ -70,7 +70,7 @@ if(NOT(MYSQL_FOUND))
   find_package_handle_standard_args(MySQL DEFAULT_MSG MYSQL_LIBRARY MYSQL_INCLUDEDIR)
 
   if(MYSQL_FOUND)	
-	set(Boost_INCLUDE_DIRS "libraries/boost/include")
+    set(Boost_INCLUDE_DIRS "libraries/boost/include")
 
     if(TARGET_OS AND TARGET_OS STREQUAL "windows")
       set(MYSQL_COPY_FILES "${EXTRA_MYSQL_LIBDIR}/mysqlcppconn-7-vs14.dll")

@@ -8,14 +8,14 @@
 
 #include "commands_rcon.h"
 
-void CCommandsRconProcessor::Init(IServer* pServer, IConsole *pConsole, CGameContext* pGameServer)
+void CCommandsRconProcessor::Init(IServer *pServer, IConsole *pConsole, CGameContext *pGameServer)
 {
 	m_pServer = pServer;
 	m_pGameServer = pGameServer;
 
-	#define RconCommand(name, params, callback, help) pConsole->Register(name, params, CFGFLAG_SERVER, callback, m_pGameServer, help)
-	#define RconCommandAllowsMapCfg(name, params, callback, help) pConsole->Register(name, params, CFGFLAG_SERVER|CFGFLAG_GAME, callback, m_pGameServer, help)
-	#define RconCommandStore(name, params, callback, help) pConsole->Register(name, params, CFGFLAG_SERVER|CFGFLAG_STORE, callback, m_pGameServer, help)
+#define RconCommand(name, params, callback, help) pConsole->Register(name, params, CFGFLAG_SERVER, callback, m_pGameServer, help)
+#define RconCommandAllowsMapCfg(name, params, callback, help) pConsole->Register(name, params, CFGFLAG_SERVER|CFGFLAG_GAME, callback, m_pGameServer, help)
+#define RconCommandStore(name, params, callback, help) pConsole->Register(name, params, CFGFLAG_SERVER|CFGFLAG_STORE, callback, m_pGameServer, help)
 
 	/************************************************************************/
 	/*  Self commands                                                       */
@@ -60,14 +60,14 @@ void CCommandsRconProcessor::Init(IServer* pServer, IConsole *pConsole, CGameCon
 /************************************************************************/
 /*  Self commands                                                       */
 /************************************************************************/
-void CCommandsRconProcessor::ConKillPlayer(IConsole::IResult* pResult, void* pUserData)
+void CCommandsRconProcessor::ConKillPlayer(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext* pSelf = (CGameContext*)pUserData;
+	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 	if(!pSelf->GetPlayer(pResult->m_ClientID))
 		return;
 
 	const int Victim = pResult->GetVictim();
-	CPlayer* pVictimPlayer = pSelf->GetPlayer(Victim);
+	CPlayer *pVictimPlayer = pSelf->GetPlayer(Victim);
 	if(pVictimPlayer)
 	{
 		pVictimPlayer->KillCharacter(WEAPON_GAME);
@@ -75,39 +75,39 @@ void CCommandsRconProcessor::ConKillPlayer(IConsole::IResult* pResult, void* pUs
 	}
 }
 
-void CCommandsRconProcessor::ConUnDeep(IConsole::IResult* pResult, void* pUserData)
+void CCommandsRconProcessor::ConUnDeep(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext* pSelf = (CGameContext*)pUserData;
-	CPlayer* pPlayer = pSelf->GetPlayer(pResult->m_ClientID);
+	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
+	CPlayer *pPlayer = pSelf->GetPlayer(pResult->m_ClientID);
 	if(!pPlayer || !pPlayer->GetCharacter())
 		return;
 
 	pPlayer->GetCharacter()->m_DeepFreeze = false;
 }
 
-void CCommandsRconProcessor::ConJetpack(IConsole::IResult* pResult, void* pUserData)
+void CCommandsRconProcessor::ConJetpack(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext* pSelf = (CGameContext*)pUserData;
-	CPlayer* pPlayer = pSelf->GetPlayer(pResult->m_ClientID);
+	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
+	CPlayer *pPlayer = pSelf->GetPlayer(pResult->m_ClientID);
 	if(!pPlayer || !pPlayer->GetCharacter())
 		return;
 
 	pPlayer->GetCharacter()->m_Jetpack = true;
 }
 
-void CCommandsRconProcessor::ConUnJetpack(IConsole::IResult* pResult, void* pUserData)
+void CCommandsRconProcessor::ConUnJetpack(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext* pSelf = (CGameContext*)pUserData;
-	CPlayer* pPlayer = pSelf->GetPlayer(pResult->m_ClientID);
+	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
+	CPlayer *pPlayer = pSelf->GetPlayer(pResult->m_ClientID);
 	if(!pPlayer || !pPlayer->GetCharacter())
 		return;
 
 	pPlayer->GetCharacter()->m_Jetpack = false;
 }
 
-void CCommandsRconProcessor::ConTeleport(IConsole::IResult* pResult, void* pUserData)
+void CCommandsRconProcessor::ConTeleport(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext* pSelf = (CGameContext*)pUserData;
+	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 	const int Tele = pResult->NumArguments() == 2 ? pResult->GetInteger(0) : pResult->m_ClientID;
 	const int TeleTo = pResult->NumArguments() ? pResult->GetInteger(pResult->NumArguments() - 1) : pResult->m_ClientID;
 	const int AuthLevel = pSelf->Server()->GetAuthedState(pResult->m_ClientID);
@@ -118,7 +118,7 @@ void CCommandsRconProcessor::ConTeleport(IConsole::IResult* pResult, void* pUser
 		return;
 	}
 
-	CCharacter* pChr = pSelf->GetPlayerChar(Tele);
+	CCharacter *pChr = pSelf->GetPlayerChar(Tele);
 	if(pChr && pSelf->GetPlayerChar(TeleTo))
 	{
 		pChr->Core()->m_Pos = pSelf->m_apPlayers[TeleTo]->m_ViewPos;
@@ -127,11 +127,11 @@ void CCommandsRconProcessor::ConTeleport(IConsole::IResult* pResult, void* pUser
 	}
 }
 
-void CCommandsRconProcessor::ConFreezeHammer(IConsole::IResult* pResult, void* pUserData)
+void CCommandsRconProcessor::ConFreezeHammer(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext* pSelf = (CGameContext*)pUserData;
+	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 	const int Victim = pResult->GetVictim();
-	CCharacter* pChr = pSelf->GetPlayerChar(Victim);
+	CCharacter *pChr = pSelf->GetPlayerChar(Victim);
 	if(!pChr)
 		return;
 
@@ -139,11 +139,11 @@ void CCommandsRconProcessor::ConFreezeHammer(IConsole::IResult* pResult, void* p
 	pChr->m_FreezeHammer = true;
 }
 
-void CCommandsRconProcessor::ConUnFreezeHammer(IConsole::IResult* pResult, void* pUserData)
+void CCommandsRconProcessor::ConUnFreezeHammer(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext* pSelf = (CGameContext*)pUserData;
+	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 	const int Victim = pResult->GetVictim();
-	CCharacter* pChr = pSelf->GetPlayerChar(Victim);
+	CCharacter *pChr = pSelf->GetPlayerChar(Victim);
 	if(!pChr)
 		return;
 
@@ -155,10 +155,10 @@ void CCommandsRconProcessor::ConUnFreezeHammer(IConsole::IResult* pResult, void*
 /************************************************************************/
 /*  Tunning                                                             */
 /************************************************************************/
-void CCommandsRconProcessor::ConTuneParam(IConsole::IResult* pResult, void* pUserData)
+void CCommandsRconProcessor::ConTuneParam(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext* pSelf = (CGameContext*)pUserData;
-	const char* pParamName = pResult->GetString(0);
+	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
+	const char *pParamName = pResult->GetString(0);
 	float NewValue = pResult->GetFloat(1);
 	if(pSelf->Tuning()->Set(pParamName, NewValue))
 	{
@@ -172,10 +172,10 @@ void CCommandsRconProcessor::ConTuneParam(IConsole::IResult* pResult, void* pUse
 	pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "tuning", "No such tuning parameter");
 }
 
-void CCommandsRconProcessor::ConToggleTuneParam(IConsole::IResult* pResult, void* pUserData)
+void CCommandsRconProcessor::ConToggleTuneParam(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext* pSelf = (CGameContext*)pUserData;
-	const char* pParamName = pResult->GetString(0);
+	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
+	const char *pParamName = pResult->GetString(0);
 	float OldValue;
 
 	if(!pSelf->Tuning()->Get(pParamName, &OldValue))
@@ -184,7 +184,7 @@ void CCommandsRconProcessor::ConToggleTuneParam(IConsole::IResult* pResult, void
 		return;
 	}
 
-	float NewValue = fabs((double)(OldValue) - (double)(pResult->GetFloat(1))) < 0.0001f ? pResult->GetFloat(2) : pResult->GetFloat(1);
+	float NewValue = fabs(static_cast<double>(OldValue) - static_cast<double>(pResult->GetFloat(1))) < 0.0001f ? pResult->GetFloat(2) : pResult->GetFloat(1);
 	pSelf->Tuning()->Set(pParamName, NewValue);
 
 	char aBuf[256];
@@ -193,9 +193,9 @@ void CCommandsRconProcessor::ConToggleTuneParam(IConsole::IResult* pResult, void
 	pSelf->SendTuningParams(-1);
 }
 
-void CCommandsRconProcessor::ConTuneDump(IConsole::IResult* pResult, void* pUserData)
+void CCommandsRconProcessor::ConTuneDump(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext* pSelf = (CGameContext*)pUserData;
+	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 	char aBuf[256];
 	for(int i = 0; i < pSelf->Tuning()->Num(); i++)
 	{
@@ -209,16 +209,16 @@ void CCommandsRconProcessor::ConTuneDump(IConsole::IResult* pResult, void* pUser
 /************************************************************************/
 /*  Mutes                                                               */
 /************************************************************************/
-void CCommandsRconProcessor::ConMute(IConsole::IResult* pResult, void* pUserData)
+void CCommandsRconProcessor::ConMute(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext* pSelf = (CGameContext*)pUserData;
+	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 	pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "mutes", "Use either 'muteid <client_id> <seconds> <reason>' or 'muteip <ip> <seconds> <reason>'");
 }
 
 // mute through client id
-void CCommandsRconProcessor::ConMuteID(IConsole::IResult* pResult, void* pUserData)
+void CCommandsRconProcessor::ConMuteID(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext* pSelf = (CGameContext*)pUserData;
+	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 	const int Victim = pResult->GetVictim();
 	if(!pSelf->GetPlayer(Victim))
 	{
@@ -228,27 +228,24 @@ void CCommandsRconProcessor::ConMuteID(IConsole::IResult* pResult, void* pUserDa
 
 	NETADDR Addr;
 	pSelf->Server()->GetClientAddr(Victim, &Addr);
-	const char* pReason = pResult->NumArguments() > 2 ? pResult->GetString(2) : "";
+	const char *pReason = pResult->NumArguments() > 2 ? pResult->GetString(2) : "";
 	pSelf->Mute(&Addr, clamp(pResult->GetInteger(1), 1, 86400), pSelf->Server()->ClientName(Victim), pReason);
 }
 
 // mute through ip, arguments reversed to workaround parsing
-void CCommandsRconProcessor::ConMuteIP(IConsole::IResult* pResult, void* pUserData)
+void CCommandsRconProcessor::ConMuteIP(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext* pSelf = (CGameContext*)pUserData;
+	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 	NETADDR Addr;
-	if(net_addr_from_str(&Addr, pResult->GetString(0)))
-	{
-		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "mutes", "Invalid network address to mute");
-	}
-	const char* pReason = pResult->NumArguments() > 2 ? pResult->GetString(2) : "";
-	pSelf->Mute(&Addr, clamp(pResult->GetInteger(1), 1, 86400), NULL, pReason);
+	if(net_addr_from_str(&Addr, pResult->GetString(0))) { pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "mutes", "Invalid network address to mute"); }
+	const char *pReason = pResult->NumArguments() > 2 ? pResult->GetString(2) : "";
+	pSelf->Mute(&Addr, clamp(pResult->GetInteger(1), 1, 86400), nullptr, pReason);
 }
 
 // unmute by mute list index
-void CCommandsRconProcessor::ConUnmute(IConsole::IResult* pResult, void* pUserData)
+void CCommandsRconProcessor::ConUnmute(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext* pSelf = (CGameContext*)pUserData;
+	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 	char aIpBuf[64];
 	char aBuf[64];
 	int Victim = pResult->GetVictim();
@@ -265,9 +262,9 @@ void CCommandsRconProcessor::ConUnmute(IConsole::IResult* pResult, void* pUserDa
 }
 
 // list mutes
-void CCommandsRconProcessor::ConMutes(IConsole::IResult* pResult, void* pUserData)
+void CCommandsRconProcessor::ConMutes(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext* pSelf = (CGameContext*)pUserData;
+	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 	if(pSelf->m_NumMutes <= 0)
 	{
 		pSelf->m_NumMutes = 0;
@@ -292,9 +289,9 @@ void CCommandsRconProcessor::ConMutes(IConsole::IResult* pResult, void* pUserDat
 /************************************************************************/
 /*  Game                                                                */
 /************************************************************************/
-void CCommandsRconProcessor::ConBroadcast(IConsole::IResult* pResult, void* pUserData)
+void CCommandsRconProcessor::ConBroadcast(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext* pSelf = (CGameContext*)pUserData;
+	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 
 	char aBuf[1024];
 	str_copy(aBuf, pResult->GetString(0), sizeof(aBuf));
@@ -314,15 +311,15 @@ void CCommandsRconProcessor::ConBroadcast(IConsole::IResult* pResult, void* pUse
 	pSelf->Broadcast(-1, B_GLOBAL_INFORMATION, 100, aBuf);
 }
 
-void CCommandsRconProcessor::ConSay(IConsole::IResult* pResult, void* pUserData)
+void CCommandsRconProcessor::ConSay(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext* pSelf = (CGameContext*)pUserData;
+	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 	pSelf->SendChat(-1, CGameContext::CHAT_ALL, pResult->GetString(0));
 }
 
-void CCommandsRconProcessor::ConDumpAntibot(IConsole::IResult* pResult, void* pUserData)
+void CCommandsRconProcessor::ConDumpAntibot(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext* pSelf = (CGameContext*)pUserData;
+	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 	pSelf->Antibot()->Dump();
 }
 
@@ -330,14 +327,14 @@ void CCommandsRconProcessor::ConDumpAntibot(IConsole::IResult* pResult, void* pU
 /************************************************************************/
 /*  Chain                                                               */
 /************************************************************************/
-void CCommandsRconProcessor::ConchainSpecialMotdupdate(IConsole::IResult* pResult, void* pUserData, IConsole::FCommandCallback pfnCallback, void* pCallbackUserData)
+void CCommandsRconProcessor::ConchainSpecialMotdupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
 {
 	pfnCallback(pResult, pCallbackUserData);
 	if(pResult->NumArguments())
 	{
 		CNetMsg_Sv_Motd Msg;
 		Msg.m_pMessage = g_Config.m_SvMotd;
-		CGameContext* pSelf = (CGameContext*)pUserData;
+		CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 		for(int i = 0; i < MAX_CLIENTS; ++i)
 			if(pSelf->m_apPlayers[i])
 				pSelf->Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, i);

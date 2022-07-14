@@ -3,7 +3,7 @@
 #ifndef BASE_TL_ALLOCATOR_H
 #define BASE_TL_ALLOCATOR_H
 
-template <class T>
+template<class T>
 class allocator_default
 {
 public:
