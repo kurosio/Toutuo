@@ -608,7 +608,6 @@ if(TARGET_OS AND TARGET_OS STREQUAL "mac")
   show_dependency_status("Dmgbuild" DMGBUILD TRUE)
 endif()
 if(SERVER_COMPILE)
-  show_dependency_status("OpenSSL" OPENSSL TRUE)
   show_dependency_status("MySQL" MYSQL TRUE)
   show_dependency_status("ICU" ICU TRUE)
   show_dependency_status("Miniupnpc" MINIUPNPC ${UPNP})
@@ -629,6 +628,7 @@ if(CLIENT_COMPILE)
   show_dependency_status("DiscordSdk" DiscordSdk ${DISCORD})
   show_dependency_status("FFmpeg" FFMPEG ${VIDEORECORDER})
 endif()
+show_dependency_status("OpenSSL" OPENSSL TRUE)
 show_dependency_status("Git" GIT ${DOWNLOAD_GTEST})
 show_dependency_status("GTest" GTEST FALSE)
 show_dependency_status("Websockets" WEBSOCKETS ${WEBSOCKETS})
@@ -640,10 +640,6 @@ if(DISCORD_DYNAMIC)
   if(NOT DISCORD)
     message(SEND_ERROR "You must enable the DISCORD flag if you want to link the Discord SDK")
   endif()
-endif()
-
-if(TARGET_OS STREQUAL "android" AND CLIENT AND NOT(OPENSSL_FOUND))
-  message(SEND_ERROR "You must install OpenSSL to compile the ${CMAKE_PROJECT_NAME} client")
 endif()
 
 if(NOT(GTEST_FOUND))
@@ -769,10 +765,6 @@ add_library(md5 EXCLUDE_FROM_ALL OBJECT ${DEP_MD5_SRC})
 
 list(APPEND TARGETS_DEP json md5)
 set(DEP_JSON $<TARGET_OBJECTS:json>)
-set(DEP_MD5)
-if(NOT OPENSSL_FOUND)
-  set(DEP_MD5 $<TARGET_OBJECTS:md5>)
-endif()
 
 ########################################################################
 # DATA
@@ -1505,11 +1497,10 @@ set(COPY_FILES_CLIENT
 
 set(COPY_FILES_SERVER
   ${ICU_COPY_FILES}
-  ${OPENSSL_COPY_FILES}
   ${MYSQL_COPY_FILES}
 )
 
-file(COPY ${COPY_FILES_CLIENT} ${COPY_FILES_SERVER} DESTINATION .)
+file(COPY ${OPENSSL_COPY_FILES} ${COPY_FILES_CLIENT} ${COPY_FILES_SERVER} DESTINATION .)
 set(COPY_DIRS ${SDL2_COPY_DIRS})
 file(COPY ${COPY_DIRS} DESTINATION .)
 
@@ -1768,6 +1759,7 @@ set(DEPS ${DEP_JSON} ${DEP_MD5} ${ZLIB_DEP})
 
 # Libraries
 set(LIBS
+  ${OPENSSL_CRYPTO_LIBRARIES}
   ${CURL_LIBRARIES}
   ${WEBSOCKETS_LIBRARIES}
   ${ZLIB_LIBRARIES}
@@ -1972,7 +1964,6 @@ if(SERVER_COMPILE)
   )
   set(SERVER_LIBRARIES
     ${LIBS}
-    ${OPENSSL_CRYPTO_LIBRARIES}
     ${ICU_LIBRARIES}
     ${MYSQL_LIBRARIES}
     ${TARGET_ANTIBOT}
@@ -2655,10 +2646,8 @@ foreach(target ${TARGETS_OWN})
   target_compile_definitions(${target} PRIVATE $<$<CONFIG:Debug>:CONF_DEBUG>)
   target_include_directories(${target} SYSTEM PRIVATE ${CURL_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS})
   target_compile_definitions(${target} PRIVATE GLEW_STATIC)
-  if(OPENSSL_FOUND)
-    target_compile_definitions(${target} PRIVATE CONF_OPENSSL)
-    target_include_directories(${target} SYSTEM PRIVATE ${OPENSSL_INCLUDE_DIRS})
-  endif()
+  target_compile_definitions(${target} PRIVATE CONF_OPENSSL)
+  target_include_directories(${target} SYSTEM PRIVATE ${OPENSSL_INCLUDE_DIRS})
   if(WEBSOCKETS)
     target_compile_definitions(${target} PRIVATE CONF_WEBSOCKETS)
     target_include_directories(${target} SYSTEM PRIVATE ${WEBSOCKETS_INCLUDE_DIRS})
