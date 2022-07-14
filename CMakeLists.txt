@@ -539,21 +539,6 @@ if(UPNP)
   find_package(Miniupnpc)
 endif()
 
-# TODO: change ||
-set(Boost_INCLUDES_DIRS)
-#if(TARGET_OS AND TARGET_OS STREQUAL "linux")
-#  find_package(Boost 1.36.0)
-#  if(NOT(Boost_FOUND))
-#    message(FATAL_ERROR, "Required install Boost.")
-#  endif()
-#elseif(TARGET_OS AND TARGET_OS STREQUAL "mac")
-#  set(SERVER_COMPILE OFF)
-#endif()
-if(NOT(Boost_INCLUDES_DIRS))
-  set(Boost_INCLUDE_DIRS "libraries/boost/include")
-endif()
-# TODO: change ||
-
 find_package(Opus)
 find_package(Opusfile)
 find_package(SDL2)
