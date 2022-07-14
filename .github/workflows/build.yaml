@@ -130,43 +130,6 @@ jobs:
       run: |
         cd release
         ./Toutuo-Server shutdown
-
-    - name: Build headless client
-      env: ${{ matrix.env }}
-      run: |
-        mkdir headless
-        cd headless
-        ${{ matrix.cmake-path }}cmake --version
-        ${{ matrix.cmake-path }}cmake ${{ matrix.cmake-args }} -DHEADLESS_CLIENT=ON -DCMAKE_BUILD_TYPE=Debug -Werror=dev -DDOWNLOAD_GTEST=ON -DDEV=ON -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG=. ..
-        ${{ matrix.cmake-path }}cmake --build . --config Debug  ${{ matrix.build-args }}
-    - name: Test headless client
-      run: |
-        cd headless
-        ./Toutuo-Server &
-        ./Toutuo "cl_download_skins 0;connect localhost:8303;quit"
-
-    - name: Build in release mode with debug info and all features on
-      if: matrix.fancy
-      env: ${{ matrix.env }}
-      run: |
-        mkdir fancy
-        cd fancy
-        ${{ matrix.cmake-path }}cmake ${{ matrix.cmake-args }} -DCMAKE_BUILD_TYPE=RelWithDebInfo -DDOWNLOAD_GTEST=ON -DCMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE=. -DANTIBOT=ON -DWEBSOCKETS=ON ..
-        ${{ matrix.cmake-path }}cmake --build . --config RelWithDebInfo --target everything ${{ matrix.build-args }}
-    - name: Test fancy
-      if: matrix.fancy
-      env: ${{ matrix.env }}
-      run: |
-        cd fancy
-        ${{ matrix.cmake-path }}cmake --build . --config RelWithDebInfo --target run_tests ${{ matrix.build-args }}
-
-    - name: Run fancy server
-      if: matrix.fancy
-      env: ${{ matrix.env }}
-      run: |
-        cd fancy
-        ./Toutuo-Server shutdown
-
     - name: Package
       run: |
         cd release
