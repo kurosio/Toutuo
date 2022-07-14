@@ -12,7 +12,6 @@
  *      distribution for more information. If you are missing that file,
  *      acquire a complete release at teeworlds.com.
  */
-
 #ifndef TEEOTHER_SYSTEM_STRING_H
 #define TEEOTHER_SYSTEM_STRING_H
 
