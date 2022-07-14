@@ -3,7 +3,7 @@
 #ifndef TEEUNIVERSES_TL_ALLOCATOR_H
 #define TEEUNIVERSES_TL_ALLOCATOR_H
 
-template <class T>
+template<class T>
 class tu_allocator_default
 {
 public:
@@ -12,12 +12,12 @@ public:
 
 	static T *alloc_array(int size) { return new T [size]; }
 	static void free_array(T *p) { delete [] p; }
-	
-	static void copy(T& a, const T& b) { a = b; }
-	static void transfert(T& a, T& b) { a = b; }
+
+	static void copy(T &a, const T &b) { a = b; }
+	static void transfert(T &a, T &b) { a = b; }
 };
 
-template <class T>
+template<class T>
 class tu_allocator_copy
 {
 public:
@@ -26,9 +26,9 @@ public:
 
 	static T *alloc_array(int size) { return new T [size]; }
 	static void free_array(T *p) { delete [] p; }
-	
-	static void copy(T& a, const T& b) { a.copy(b); }
-	static void transfert(T& a, T& b) { a.transfert(b); }
+
+	static void copy(T &a, const T &b) { a.copy(b); }
+	static void transfert(T &a, T &b) { a.transfert(b); }
 };
 
 #endif // TL_FILE_ALLOCATOR_HPP

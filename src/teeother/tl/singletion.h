@@ -12,7 +12,7 @@ protected:
 public:
 	virtual ~CSingleton() {}
 
-	static T* Get() 
+	static T *Get()
 	{
 		if(!m_pSingleton.get())
 			m_pSingleton.reset(new T());
@@ -23,7 +23,7 @@ public:
 	{
 		if(m_pSingleton.get())
 		{
-			T* pSingletion = m_pSingleton.release();
+			T *pSingletion = m_pSingleton.release();
 			delete pSingletion;
 		}
 	}
