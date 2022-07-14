@@ -13,8 +13,8 @@
  *      acquire a complete release at teeworlds.com.
  */
 
-#ifndef __SHARED_SYSTEM_STRING__
-#define __SHARED_SYSTEM_STRING__
+#ifndef TEEOTHER_SYSTEM_STRING_H
+#define TEEOTHER_SYSTEM_STRING_H
 
 #include <cstdlib>
 #include <base/math.h>

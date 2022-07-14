@@ -1,5 +1,5 @@
-#ifndef SHARED_TL_SINGLETON_H
-#define	SHARED_TL_SINGLETON_H
+#ifndef TEEOTHER_TL_SINGLETION_H
+#define TEEOTHER_TL_SINGLETION_H
 
 #include <memory>
 

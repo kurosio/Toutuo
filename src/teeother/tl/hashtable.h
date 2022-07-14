@@ -1,5 +1,5 @@
-#ifndef SHARED_TL_HASHTABLE_H
-#define SHARED_TL_HASHTABLE_H
+#ifndef TEEOTHER_TL_HASHTABLE_H
+#define TEEOTHER_TL_HASHTABLE_H
 
 /* BEGIN EDIT *********************************************************/
 #include <base/tl/array.h>

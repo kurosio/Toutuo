@@ -6,7 +6,7 @@
 #include <engine/shared/config.h>
 #include <engine/shared/protocol.h>
 
-#include "commands_rcon.h"
+#include "cmdrcon.h"
 
 void CCommandsRconProcessor::Init(IServer *pServer, IConsole *pConsole, CGameContext *pGameServer)
 {
@@ -54,6 +54,10 @@ void CCommandsRconProcessor::Init(IServer *pServer, IConsole *pConsole, CGameCon
 	/*  Chain                                                               */
 	/************************************************************************/
 	pConsole->Chain("sv_motd", ConchainSpecialMotdupdate, this);
+
+#undef RconCommand
+#undef RconCommandStore
+#undef RconCommandAllowsMapCfg
 }
 
 

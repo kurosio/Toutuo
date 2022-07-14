@@ -4,7 +4,7 @@
 #include <engine/shared/config.h>
 #include <game/version.h>
 
-#include "commands_chat.h"
+#include "cmdchat.h"
 
 void CCommandsChatProcessor::Init(IServer *pServer, IConsole *pConsole, CGameContext *pGameServer)
 {
@@ -24,6 +24,8 @@ void CCommandsChatProcessor::Init(IServer *pServer, IConsole *pConsole, CGameCon
 	ChatCommand("c", "r[message]", ConConverse, "Converse with the last person you whispered to (private message)");
 	ChatCommand("converse", "r[message]", ConConverse, "Converse with the last person you whispered to (private message)");
 	ChatCommand("timeout", "?s[code]", ConTimeout, "Set timeout protection code s");
+
+#undef ChatCommand
 }
 
 void CCommandsChatProcessor::ConCredits(IConsole::IResult *pResult, void *pUserData)

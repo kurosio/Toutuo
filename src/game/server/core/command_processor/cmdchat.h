@@ -1,7 +1,7 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
-#ifndef GAME_SERVER_SERVER_CORE_COMMAND_PROCESSOR_CHAT_H
-#define GAME_SERVER_SERVER_CORE_COMMAND_PROCESSOR_CHAT_H
+#ifndef GAME_SERVER_CORE_COMMAND_PROCESSOR_CMDCHAT_H
+#define GAME_SERVER_CORE_COMMAND_PROCESSOR_CMDCHAT_H
 
 class CCommandsChatProcessor
 {
