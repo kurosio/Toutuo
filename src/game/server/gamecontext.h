@@ -16,7 +16,7 @@
 #include "gameworld.h"
 #include "teehistorian.h"
 
-#include "core/structcontext.h"
+#include "core/context.h"
 
 #include <memory>
 #include <string>

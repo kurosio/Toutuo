@@ -1,5 +1,5 @@
-#ifndef __SHARED_LOCALIZATION__
-#define __SHARED_LOCALIZATION__
+#ifndef TEEOTHER_COMPONENTS_LOCALIZATION_H
+#define TEEOTHER_COMPONENTS_LOCALIZATION_H
 
 #include <unicode/tmutfmt.h>
 #include <teeother/tl/hashtable.h>

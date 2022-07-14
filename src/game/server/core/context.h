@@ -1,5 +1,5 @@
-#ifndef GAME_SERVER_CORE_CONTEXT
-#define GAME_SERVER_CORE_CONTEXT
+#ifndef GAME_SERVER_CORE_CONTEXT_H
+#define GAME_SERVER_CORE_CONTEXT_H
 
 enum BroadcastContext
 {
