@@ -43,7 +43,7 @@ jobs:
             LDFLAGS: /WX
         - name: "Windows-2019 x32"
           os: windows-2019
-          cmake-args: -A x64
+          cmake-args: -A Win32
           package-file: "*-win32.zip"
           fancy: false
           env:
