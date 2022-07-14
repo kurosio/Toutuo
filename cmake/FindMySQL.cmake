@@ -1,3 +1,4 @@
+set(MYSQL_CPPCONN_LIBRARY)
 if(NOT CMAKE_CROSSCOMPILING)
   find_program(MYSQL_CONFIG
     NAMES mysql_config mariadb_config
@@ -59,6 +60,12 @@ if(NOT(MYSQL_FOUND))
     PATHS ${PATHS_MYSQL_LIBDIR}
     ${CROSSCOMPILING_NO_CMAKE_SYSTEM_PATH}
   )
+  find_library(MYSQL_CPPCONN_LIBRARY
+    NAMES "mysqlcppconn" "mysqlcppconn-static"
+    HINTS ${HINTS_MYSQL_LIBDIR} ${MYSQL_CONFIG_LIBRARY_PATH}
+    PATHS ${PATHS_MYSQL_LIBDIR}
+    ${CROSSCOMPILING_NO_CMAKE_SYSTEM_PATH}
+  )
   set_extra_dirs_include(MYSQL mysql "${MYSQL_LIBRARY}")
   find_path(MYSQL_INCLUDEDIR
     NAMES "mysql.h"
@@ -79,7 +86,7 @@ if(NOT(MYSQL_FOUND))
     endif()
   endif()
 else()
-  set(MYSQL_LIBRARIES ${MYSQL_LIBRARY})
+  set(MYSQL_LIBRARIES ${MYSQL_LIBRARY} ${MYSQL_CPPCONN_LIBRARY})
   set(MYSQL_INCLUDE_DIRS ${MYSQL_INCLUDEDIR})
   
   mark_as_advanced(MYSQL_INCLUDEDIR MYSQL_LIBRARY)
