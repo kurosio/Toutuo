@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest, ubuntu-20.04]
+        os: [ubuntu-latest, windows-latest, ubuntu-20.04, windows-2019]
         include:
         - os: ubuntu-latest
           cmake-args: -G Ninja
@@ -32,14 +32,8 @@ jobs:
             CFLAGS: -Wdeclaration-after-statement -Werror
             CXXFLAGS: -Werror
             GTEST_FILTER: -*SQLite*
-        - os: macOS-latest
-          cmake-args: -G Ninja
-          package-file: "*-macos.dmg"
-          fancy: false
-          env:
-            CFLAGS: -Wdeclaration-after-statement -Werror
-            CXXFLAGS: -Werror
-        - os: windows-latest
+        - name: "Windows-latest x64"
+          os: windows-latest
           cmake-args: -A x64
           package-file: "*-win64.zip"
           fancy: false
@@ -47,7 +41,16 @@ jobs:
             CFLAGS: /WX
             CXXFLAGS: /WX
             LDFLAGS: /WX
-
+        - name: "Windows-2019 x32"
+          os: windows-2019
+          cmake-args: -A Win32
+          package-file: "*-win32.zip"
+          fancy: false
+          env:
+            CFLAGS: /WX
+            CXXFLAGS: /WX
+            LDFLAGS: /WX
+            
     steps:
     - uses: actions/checkout@v2
       with:
@@ -90,15 +93,6 @@ jobs:
         GRANT ALL PRIVILEGES ON ddnet.* TO 'ddnet'@'localhost';
         FLUSH PRIVILEGES;
         EOF
-
-    - name: Prepare macOS
-      if: contains(matrix.os, 'macOS')
-      run: |
-        brew update || true
-        brew install pkg-config sdl2 ffmpeg python3 ninja molten-vk vulkan-headers glslang spirv-tools icu4c
-        brew upgrade freetype
-        pip3 install dmgbuild
-        sudo rm -rf /Library/Developer/CommandLineTools
 
     - name: Build in debug mode
       env: ${{ matrix.env }}
