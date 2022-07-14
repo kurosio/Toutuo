@@ -11,8 +11,8 @@ EXCEPTIONS = [
         "src/base/unicode/tolower.h",
 	"src/base/unicode/tolower_data.h",
 	"src/tools/config_common.h",
-    "src/teeother/tl/nlohmann_json.h",
-    "src/teeother/system/string.h"
+	"src/teeother/tl/nlohmann_json.h",
+	"src/teeother/system/string.h"
 ]
 
 def check_file(filename):
