@@ -554,10 +554,10 @@ if(NOT(Boost_INCLUDES_DIRS))
 endif()
 # TODO: change ||
 
-find_package(SDL2)
-find_package(Ogg)
 find_package(Opus)
 find_package(Opusfile)
+find_package(SDL2)
+find_package(Ogg)
 find_package(PNG)
 find_package(Freetype)
 find_package(SQLite3)
