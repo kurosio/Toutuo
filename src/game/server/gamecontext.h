@@ -91,38 +91,9 @@ class CGameContext : public IGameServer
 	static void CommandCallback(int ClientID, int FlagMask, const char *pCmd, IConsole::IResult *pResult, void *pUser);
 	static void TeeHistorianWrite(const void *pData, int DataSize, void *pUser);
 
-	static void ConTuneParam(IConsole::IResult *pResult, void *pUserData);
-	static void ConToggleTuneParam(IConsole::IResult *pResult, void *pUserData);
-	static void ConTuneReset(IConsole::IResult *pResult, void *pUserData);
-	static void ConTuneDump(IConsole::IResult *pResult, void *pUserData);
-	static void ConTuneZone(IConsole::IResult *pResult, void *pUserData);
-	static void ConTuneDumpZone(IConsole::IResult *pResult, void *pUserData);
-	static void ConTuneResetZone(IConsole::IResult *pResult, void *pUserData);
-	static void ConTuneSetZoneMsgEnter(IConsole::IResult *pResult, void *pUserData);
-	static void ConTuneSetZoneMsgLeave(IConsole::IResult *pResult, void *pUserData);
-	static void ConMapbug(IConsole::IResult *pResult, void *pUserData);
-	static void ConSwitchOpen(IConsole::IResult *pResult, void *pUserData);
-	static void ConPause(IConsole::IResult *pResult, void *pUserData);
-	static void ConChangeMap(IConsole::IResult *pResult, void *pUserData);
-	static void ConRestart(IConsole::IResult *pResult, void *pUserData);
-	static void ConBroadcast(IConsole::IResult *pResult, void *pUserData);
-	static void ConSay(IConsole::IResult *pResult, void *pUserData);
-	static void ConSetTeam(IConsole::IResult *pResult, void *pUserData);
-	static void ConSetTeamAll(IConsole::IResult *pResult, void *pUserData);
-	static void ConAddVote(IConsole::IResult *pResult, void *pUserData);
-	static void ConRemoveVote(IConsole::IResult *pResult, void *pUserData);
-	static void ConForceVote(IConsole::IResult *pResult, void *pUserData);
-	static void ConClearVotes(IConsole::IResult *pResult, void *pUserData);
-	static void ConAddMapVotes(IConsole::IResult *pResult, void *pUserData);
-	static void ConVote(IConsole::IResult *pResult, void *pUserData);
-	static void ConVoteNo(IConsole::IResult *pResult, void *pUserData);
-	static void ConDumpAntibot(IConsole::IResult *pResult, void *pUserData);
-	static void ConchainSpecialMotdupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
-
 	void Construct(int Resetting);
 	void Destruct(int Resetting);
 	void AddVote(const char *pDescription, const char *pCommand);
-	static int MapScan(const char *pName, int IsDir, int DirType, void *pUserData);
 
 	struct CPersistentClientData
 	{
@@ -242,16 +213,15 @@ private:
 	CBroadcastState m_aBroadcastStates[MAX_PLAYERS];
 
 public:
+	void BroadcastTick(int ClientID);
 	void AddBroadcast(int ClientID, const char *pText, GamePriority Priority, int LifeSpan);
 	void Broadcast(int ClientID, GamePriority Priority, int LifeSpan, const char *pText, ...);
-	void BroadcastTick(int ClientID);
 
 	// network
 	void CallVote(int ClientID, const char *pDesc, const char *pCmd, const char *pReason, const char *pChatmsg);
 	void SendEmoticon(int ClientID, int Emoticon);
 	void SendWeaponPickup(int ClientID, int Weapon);
 	void SendMotd(int ClientID);
-	void SendBroadcast(const char *pText, int ClientID, bool IsImportant = true);
 
 	void List(int ClientID, const char *filter);
 
@@ -275,8 +245,7 @@ public:
 	void OnPreSnap() override;
 	void OnSnap(int ClientID) override;
 	void OnPostSnap() override;
-
-	void *PreProcessMsg(int *MsgID, CUnpacker *pUnpacker, int ClientID);
+	
 	void CensorMessage(char *pCensoredMessage, const char *pMessage, int Size);
 	void OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID) override;
 
@@ -307,7 +276,6 @@ public:
 	int ProcessSpamProtection(int ClientID, bool RespectChatInitialDelay = true);
 	// Describes the time when the first player joined the server.
 	int64_t m_NonEmptySince;
-	int64_t m_LastMapVote;
 	int GetClientVersion(int ClientID) const;
 	int64_t ClientsMaskExcludeClientVersionAndHigher(int Version);
 	bool PlayerExists(int ClientID) const override { return m_apPlayers[ClientID]; }
@@ -317,7 +285,6 @@ public:
 
 	// Checks if player can vote and notify them about the reason
 	bool RateLimitPlayerVote(int ClientID);
-	bool RateLimitPlayerMapVote(int ClientID);
 
 private:
 	// starting 1 to make 0 the special value "no client id"

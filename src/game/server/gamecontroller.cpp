@@ -29,7 +29,6 @@ IGameController::IGameController(class CGameContext *pGameServer)
 	m_RoundStartTick = Server()->Tick();
 	m_RoundCount = 0;
 	m_GameFlags = 0;
-	m_aMapWish[0] = 0;
 
 	m_UnbalancedTick = -1;
 	m_ForceBalanced = false;
@@ -37,8 +36,6 @@ IGameController::IGameController(class CGameContext *pGameServer)
 	m_aNumSpawnPoints[0] = 0;
 	m_aNumSpawnPoints[1] = 0;
 	m_aNumSpawnPoints[2] = 0;
-
-	m_CurrentRecord = 0;
 }
 
 IGameController::~IGameController() = default;

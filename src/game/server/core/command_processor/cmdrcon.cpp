@@ -308,6 +308,8 @@ void CCommandsRconProcessor::ConBroadcast(IConsole::IResult *pResult, void *pUse
 			aBuf[j] = '\n';
 			i++;
 		}
+		else if(aBuf[i] == '{' || aBuf[i] == '}')
+			aBuf[i] = '?';
 		else if(i != j)
 			aBuf[j] = aBuf[i];
 	}

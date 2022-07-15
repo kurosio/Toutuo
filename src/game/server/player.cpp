@@ -46,7 +46,6 @@ void CPlayer::Reset()
 	m_pCharacter = nullptr;
 	m_SpectatorID = SPEC_FREEVIEW;
 	m_LastActionTick = Server()->Tick();
-	m_TeamChangeTick = Server()->Tick();
 	m_WeakHookSpawn = false;
 
 	int *pIdMap = Server()->GetIdMap(m_ClientID);
@@ -218,7 +217,6 @@ void CPlayer::Tick()
 		++m_PreviousDieTick;
 		++m_JoinTick;
 		++m_LastActionTick;
-		++m_TeamChangeTick;
 	}
 
 	m_TuneZoneOld = m_TuneZone; // determine needed tunings with viewpos
@@ -421,7 +419,7 @@ void CPlayer::OnPredictedInput(CNetObj_PlayerInput *NewInput)
 
 	// Magic number when we can hope that client has successfully identified itself
 	if(m_NumInputs == 20 && g_Config.m_SvClientSuggestion[0] != '\0' && GetClientVersion() <= VERSION_DDNET_OLD)
-		GameServer()->SendBroadcast(g_Config.m_SvClientSuggestion, m_ClientID);
+		GameServer()->Broadcast(m_ClientID, GamePriority::GLOBAL, 100, g_Config.m_SvClientSuggestion);
 }
 
 void CPlayer::OnDirectInput(CNetObj_PlayerInput *NewInput)

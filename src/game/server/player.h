@@ -103,7 +103,6 @@ public:
 	int m_Score;
 	int m_JoinTick;
 	int m_LastActionTick;
-	int m_TeamChangeTick;
 
 	// network latency calculations
 	struct
@@ -192,8 +191,6 @@ public:
 	void AfkTimer();
 	int64_t m_LastPlaytime;
 	int64_t m_LastEyeEmote;
-	int64_t m_LastBroadcast;
-	bool m_LastBroadcastImportance;
 
 	CNetObj_PlayerInput *m_pLastTarget;
 	bool m_LastTargetInit;
