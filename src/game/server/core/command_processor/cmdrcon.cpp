@@ -71,8 +71,7 @@ void CCommandsRconProcessor::ConKillPlayer(IConsole::IResult *pResult, void *pUs
 		return;
 
 	const int Victim = pResult->GetVictim();
-	CPlayer *pVictimPlayer = pSelf->GetPlayer(Victim);
-	if(pVictimPlayer)
+	if(CPlayer *pVictimPlayer = pSelf->GetPlayer(Victim))
 	{
 		pVictimPlayer->KillCharacter(WEAPON_GAME);
 		pSelf->Chat(-1, "{STR} was killed by {STR}", pSelf->Server()->ClientName(Victim), pSelf->Server()->ClientName(pResult->m_ClientID));

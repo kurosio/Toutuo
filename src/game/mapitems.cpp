@@ -91,7 +91,6 @@ bool IsValidEntity(int Index)
 		(Index >= ENTITY_SPAWN && Index <= ENTITY_WEAPON_LASER) ||
 		(Index >= ENTITY_LASER_SHORT && Index <= ENTITY_LASER_O_FAST) ||
 		(Index >= ENTITY_ARMOR_SHOTGUN && Index <= ENTITY_ARMOR_LASER) ||
-		(Index >= ENTITY_DRAGGER_WEAK && Index <= ENTITY_DRAGGER_STRONG_NW) ||
 		Index == ENTITY_DOOR);
 }
 

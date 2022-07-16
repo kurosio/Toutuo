@@ -337,30 +337,6 @@ const char *CEditor::Explain(int ExplanationID, int Tile, int Layer) //TODO: Add
 			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
 				return "LASER SHIELD: Takes laser away.";
 			break;
-		case ENTITY_OFFSET + ENTITY_DRAGGER_WEAK:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "DRAGGING LASER: Grabs and attracts the closest tee to it. Can't reach tees through walls and LASER BLOCKER. Weak.";
-			break;
-		case ENTITY_OFFSET + ENTITY_DRAGGER_NORMAL:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "DRAGGING LASER: Grabs and attracts the closest tee to it. Can't reach tees through walls and LASER BLOCKER. Medium strength.";
-			break;
-		case ENTITY_OFFSET + ENTITY_DRAGGER_STRONG:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "DRAGGING LASER: Grabs and attracts the closest tee to it. Can't reach tees through walls and LASER BLOCKER. Strong.";
-			break;
-		case ENTITY_OFFSET + ENTITY_DRAGGER_WEAK_NW:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "DRAGGING LASER: Grabs and attracts the closest tee to it. Can reach tees through walls but not through LASER BLOCKER. Weak.";
-			break;
-		case ENTITY_OFFSET + ENTITY_DRAGGER_NORMAL_NW:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "DRAGGING LASER: Grabs and attracts the closest tee to it. Can reach tees through walls but not through LASER BLOCKER. Medium strength.";
-			break;
-		case ENTITY_OFFSET + ENTITY_DRAGGER_STRONG_NW:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
-				return "DRAGGING LASER: Grabs and attracts the closest tee to it. Can reach tees through walls but not through LASER BLOCKER. Strong.";
-			break;
 		case ENTITY_OFFSET + ENTITY_DOOR:
 			if(Layer == LAYER_GAME || Layer == LAYER_FRONT || Layer == LAYER_SWITCH)
 				return "DOOR: Combined with LASER LENGTH creates doors. Doesn't allow to go through it (only with NINJA).";

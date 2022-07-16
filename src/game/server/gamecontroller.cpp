@@ -11,7 +11,6 @@
 
 #include "entities/character.h"
 #include "entities/door.h"
-#include "entities/dragger.h"
 #include "entities/pickup.h"
 #include "entities/projectile.h"
 
@@ -242,14 +241,6 @@ bool IGameController::OnEntity(int Index, vec2 Pos, int Layer, int Flags, int Nu
 	{
 		Type = POWERUP_NINJA;
 		SubType = WEAPON_NINJA;
-	}
-	else if(Index >= ENTITY_DRAGGER_WEAK && Index <= ENTITY_DRAGGER_STRONG)
-	{
-		new CDragger(&GameServer()->m_World, Pos, Index - ENTITY_DRAGGER_WEAK + 1, false, Layer, Number);
-	}
-	else if(Index >= ENTITY_DRAGGER_WEAK_NW && Index <= ENTITY_DRAGGER_STRONG_NW)
-	{
-		new CDragger(&GameServer()->m_World, Pos, Index - ENTITY_DRAGGER_WEAK_NW + 1, true, Layer, Number);
 	}
 
 	if(Type != -1)
