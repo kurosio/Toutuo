@@ -3,7 +3,7 @@
 #include <mutex>
 #include <engine/shared/config.h>
 
-#include <stdarg.h>
+#include <cstdarg>
 
 /*
 	I don't see the point in using SELECT operations in the thread,

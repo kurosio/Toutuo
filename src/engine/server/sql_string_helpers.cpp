@@ -1,5 +1,7 @@
 #include "sql_string_helpers.h"
 
+#include <base/system.h>
+
 void sqlstr::FuzzyString(char *pString, int size)
 {
 	char * newString = new char [size * 4 - 1];

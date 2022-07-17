@@ -1,7 +1,6 @@
 #ifndef ENGINE_SERVER_SQL_CONNECT_POOL_H
 #define ENGINE_SERVER_SQL_CONNECT_POOL_H
 
-#include <mysql_connection.h>
 #include <cppconn/driver.h>
 #include <cppconn/statement.h>
 #include <cppconn/resultset.h>
