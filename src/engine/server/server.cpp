@@ -410,7 +410,7 @@ CServer::CServer()
 	m_aErrorShutdownReason[0] = 0;
 
 	Init();
-	SJK.Init(this);
+	Sqlpool.Init(this);
 }
 
 CServer::~CServer()
@@ -430,7 +430,7 @@ CServer::~CServer()
 
 	delete m_pRegister;
 	delete m_pConnectionPool;
-	SJK.DisconnectConnectionHeap();
+	Sqlpool.DisconnectConnectionHeap();
 }
 
 bool CServer::IsClientNameAvailable(int ClientID, const char *pNameRequest)

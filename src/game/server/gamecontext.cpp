@@ -794,15 +794,22 @@ void CGameContext::OnPreTickTeehistorian()
 
 void CGameContext::OnTick()
 {
+	auto pRes = Sqlpool.Execute<TypeDB::Select>("*", "tw_items_list").GetResult();
+	if(pRes->next())
+		dbg_msg("sss", "sssss");
 
-	CConectionPool::ResultData pData = SJK.SD("*", "tw_items_list");
-	pData.OnCompletion([](IServer *pServer, ResultPtr pRes) 
+	Sqlpool.Execute<TypeDB::Select>("*", "tw_items_list").AtCompletion([](IServer *pServer, ResultPtr pRes) 
 	{
-		if(pRes->next())
-		{
-	//		dbg_msg("test", "%s", pRes->getString("Name").c_str());
-		}
+		
 	});
+	auto Item = Sqlpool.Execute<TypeDB::Update>("tw_items_list", "Name = 'Gold' WHERE ItemID = '1'");
+	Item.AtCompletion([](IServer *pServer) 
+	{
+		dbg_msg("done", "update done");
+	});
+	Item.Do();
+
+
 	// check tuning
 	CheckPureTuning();
 
