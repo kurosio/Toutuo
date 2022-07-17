@@ -796,7 +796,7 @@ void CGameContext::OnTick()
 {
 
 	CConectionPool::ResultData pData = SJK.SD("*", "tw_items_list");
-	pData.OnComplete([](IServer *pServer, ResultPtr pRes) 
+	pData.OnCompletion([](IServer *pServer, ResultPtr pRes) 
 	{
 		if(pRes->next())
 		{

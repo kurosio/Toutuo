@@ -366,7 +366,7 @@ ResultPtr CConectionPool::ResultData::GetResult() const
 	return pResult;
 }
 
-void CConectionPool::ResultData::OnComplete(void (*pCallback)(IServer *, ResultPtr))
+void CConectionPool::ResultData::OnCompletion(void (*pCallback)(IServer *, ResultPtr))
 {
 	auto Selected = [pCallback](const std::string Query)
 	{

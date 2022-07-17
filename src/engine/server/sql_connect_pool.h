@@ -1,5 +1,5 @@
-#ifndef ENGINE_SERVER_SQL_CONNECTIONPOOL_H
-#define ENGINE_SERVER_SQL_CONNECTIONPOOL_H
+#ifndef ENGINE_SERVER_SQL_CONNECT_POOL_H
+#define ENGINE_SERVER_SQL_CONNECT_POOL_H
 
 #include <mysql_connection.h>
 #include <cppconn/driver.h>
@@ -58,7 +58,7 @@ public:
 
 	public:
 		[[nodiscard]] ResultPtr GetResult() const;
-		void OnComplete(void (*pCallback)(IServer *, ResultPtr));
+		void OnCompletion(void (*pCallback)(IServer *, ResultPtr));
 	};
 	ResultData SD(const char *pSelect, const char *pTable, const char *Buffer = "", ...);
 };
