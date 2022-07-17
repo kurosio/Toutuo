@@ -1,8 +1,6 @@
 #ifndef ENGINE_SERVER_SQL_CONNECT_POOL_H
 #define ENGINE_SERVER_SQL_CONNECT_POOL_H
 
-#include <cppconn/driver.h>
-#include <cppconn/statement.h>
 #include <cppconn/resultset.h>
 
 using namespace sql;

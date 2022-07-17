@@ -1,8 +1,11 @@
+#include <cppconn/driver.h>
+#include <cppconn/statement.h>
+
 #include "sql_connect_pool.h"
 
-#include <mutex>
 #include <engine/shared/config.h>
 
+#include <mutex>
 #include <cstdarg>
 
 /*
