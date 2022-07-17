@@ -6,6 +6,7 @@
 #include <engine/shared/config.h>
 
 #include <mutex>
+#include <thread>
 #include <cstdarg>
 
 /*
