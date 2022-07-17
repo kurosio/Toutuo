@@ -53,11 +53,10 @@ find_path(MYSQL_INCLUDEDIR
 )
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(MySQL DEFAULT_MSG MYSQL_LIBRARY MYSQL_INCLUDEDIR)
+find_package_handle_standard_args(MySQL DEFAULT_MSG MYSQL_LIBRARY MYSQL_INCLUDEDIR) 
+set(Boost_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/libraries/boost/include")
 
 if(NOT(MYSQL_FOUND))
-  set(Boost_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/libraries/boost/include")
-
   find_library(MYSQL_LIBRARY
     NAMES "mysqlclient" "mysqlclient_r" "mariadbclient"
     HINTS ${HINTS_MYSQL_LIBDIR} ${MYSQL_CONFIG_LIBRARY_PATH}

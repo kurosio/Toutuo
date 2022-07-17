@@ -107,16 +107,6 @@ const char *CEditor::Explain(int ExplanationID, int Tile, int Layer) //TODO: Add
 			if(Layer == LAYER_SWITCH)
 				return "HIT OTHERS: You can deactivate hitting others for single weapons, using delay number to select which.";
 			break;
-		case TILE_SOLO_ENABLE:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT)
-				return "SOLO: You are now in a solo part.";
-			break;
-		case TILE_SOLO_DISABLE: // also TILE_SWITCHTIMEDOPEN
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT)
-				return "SOLO: You are now out of the solo part.";
-			if(Layer == LAYER_SWITCH)
-				return "TIME SWITCH: Activates switch (e.g. closes door) with the same number for a set amount of seconds.";
-			break;
 		case TILE_SWITCHTIMEDCLOSE:
 			if(Layer == LAYER_SWITCH)
 				return "TIME SWITCH: Deactivates switch (e.g. opens door) with the same number for a set amount of seconds.";
@@ -213,10 +203,6 @@ const char *CEditor::Explain(int ExplanationID, int Tile, int Layer) //TODO: Add
 			if(Layer == LAYER_GAME || Layer == LAYER_FRONT)
 				return "SUPER JUMP OFF: You don't have unlimited air jumps.";
 			break;
-		case TILE_JETPACK_DISABLE:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT)
-				return "JETPACK OFF: You lose your jetpack gun.";
-			break;
 		case TILE_NPH_DISABLE:
 			if(Layer == LAYER_GAME || Layer == LAYER_FRONT)
 				return "HOOK OTHERS OFF: You can't hook others.";
@@ -228,10 +214,6 @@ const char *CEditor::Explain(int ExplanationID, int Tile, int Layer) //TODO: Add
 		case TILE_UNLIMITED_JUMPS_ENABLE:
 			if(Layer == LAYER_GAME || Layer == LAYER_FRONT)
 				return "SUPER JUMP: You have unlimited air jumps.";
-			break;
-		case TILE_JETPACK_ENABLE:
-			if(Layer == LAYER_GAME || Layer == LAYER_FRONT)
-				return "JETPACK: You have a jetpack gun.";
 			break;
 		case TILE_NPH_ENABLE:
 			if(Layer == LAYER_GAME || Layer == LAYER_FRONT)

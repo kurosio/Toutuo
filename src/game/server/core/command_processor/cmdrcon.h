@@ -15,8 +15,6 @@ class CCommandsRconProcessor
 	/************************************************************************/
 	static void ConKillPlayer(IConsole::IResult* pResult, void* pUserData);
 	static void ConUnDeep(IConsole::IResult* pResult, void* pUserData);
-	static void ConJetpack(IConsole::IResult* pResult, void* pUserData);
-	static void ConUnJetpack(IConsole::IResult* pResult, void* pUserData);
 	static void ConTeleport(IConsole::IResult* pResult, void* pUserData);
 	static void ConFreezeHammer(IConsole::IResult* pResult, void* pUserData);
 	static void ConUnFreezeHammer(IConsole::IResult* pResult, void* pUserData);

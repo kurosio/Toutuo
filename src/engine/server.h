@@ -30,6 +30,8 @@ protected:
 	int m_TickSpeed;
 
 public:
+	virtual class IGameServer *GameServer() = 0;
+
 	class CLocalization *m_pLocalization;
 	class CLocalization *Localization() { return m_pLocalization; }
 	/*

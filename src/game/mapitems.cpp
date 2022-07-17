@@ -8,7 +8,7 @@ bool IsValidGameTile(int Index)
 		Index == TILE_FREEZE ||
 		(Index >= TILE_UNFREEZE && Index <= TILE_DUNFREEZE) ||
 		(Index >= TILE_LFREEZE && Index <= TILE_LUNFREEZE) ||
-		(Index >= TILE_WALLJUMP && Index <= TILE_SOLO_DISABLE) ||
+		(Index >= TILE_WALLJUMP && Index <= TILE_HIT_DISABLE) ||
 		(Index >= TILE_REFILL_JUMPS && Index <= TILE_STOPA) ||
 		(Index >= TILE_CP && Index <= TILE_THROUGH_DIR) ||
 		(Index >= TILE_OLDLASER && Index <= TILE_NPH) ||
@@ -30,7 +30,7 @@ bool IsValidFrontTile(int Index)
 		Index == TILE_FREEZE ||
 		(Index >= TILE_UNFREEZE && Index <= TILE_DUNFREEZE) ||
 		(Index >= TILE_LFREEZE && Index <= TILE_LUNFREEZE) ||
-		(Index >= TILE_WALLJUMP && Index <= TILE_SOLO_DISABLE) ||
+		(Index >= TILE_WALLJUMP && Index <= TILE_HIT_DISABLE) ||
 		(Index >= TILE_REFILL_JUMPS && Index <= TILE_STOPA) ||
 		(Index >= TILE_CP && Index <= TILE_THROUGH_DIR) ||
 		(Index >= TILE_OLDLASER && Index <= TILE_NPH) ||

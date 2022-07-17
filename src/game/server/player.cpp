@@ -102,8 +102,6 @@ void CPlayer::Reset()
 	m_ShowOthers = g_Config.m_SvShowOthersDefault;
 	m_ShowAll = g_Config.m_SvShowAllDefault;
 	m_ShowDistance = vec2(1200, 800);
-	m_SpecTeam = false;
-	m_NinjaJetpack = false;
 
 	m_Paused = PAUSE_NONE;
 	m_DND = false;
@@ -150,7 +148,7 @@ void CPlayer::Tick()
 	if(m_Moderating && m_Afk)
 	{
 		m_Moderating = false;
-		GameServer()->SendChatTarget(m_ClientID, "Active moderator mode disabled because you are afk.");
+		GameServer()->Chat(m_ClientID, "Active moderator mode disabled because you are afk.");
 
 		if(!GameServer()->PlayerModerating())
 			GameServer()->SendChat(-1, CGameContext::CHAT_ALL, "Server kick/spec votes are no longer actively moderated.");
@@ -641,7 +639,7 @@ int CPlayer::Pause(int State, bool Force)
 			{
 				if(!Force && m_LastPause && m_LastPause + (int64_t)g_Config.m_SvSpecFrequency * Server()->TickSpeed() > Server()->Tick())
 				{
-					GameServer()->SendChatTarget(m_ClientID, "Can't /spec that quickly.");
+					GameServer()->Chat(m_ClientID, "Can't /spec that quickly.");
 					return m_Paused; // Do not update state. Do not collect $200
 				}
 				m_pCharacter->Pause(false);

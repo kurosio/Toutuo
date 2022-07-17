@@ -48,7 +48,6 @@ public:
 
 	void HandleWeapons();
 	void HandleNinja();
-	void HandleJetpack();
 
 	void OnPredictedInput(CNetObj_PlayerInput *pNewInput);
 	void OnDirectInput(CNetObj_PlayerInput *pNewInput);
@@ -162,7 +161,6 @@ public:
 	bool CanCollide(int ClientID);
 	bool m_Super;
 	bool m_SuperJump;
-	bool m_Jetpack;
 	bool m_NinjaJetpack;
 	int m_TeamBeforeSuper;
 	int m_FreezeTime;

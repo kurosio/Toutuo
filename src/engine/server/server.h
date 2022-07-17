@@ -121,7 +121,7 @@ class CServer : public IServer
 	class CDbConnectionPool *m_pConnectionPool;
 
 public:
-	class IGameServer *GameServer() { return m_pGameServer; }
+	virtual class IGameServer *GameServer() { return m_pGameServer; }
 	class CConfig *Config() { return m_pConfig; }
 	const CConfig *Config() const { return m_pConfig; }
 	class IConsole *Console() { return m_pConsole; }

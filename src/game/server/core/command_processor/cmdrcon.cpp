@@ -22,7 +22,6 @@ void CCommandsRconProcessor::Init(IServer *pServer, IConsole *pConsole, CGameCon
 	/************************************************************************/
 	RconCommand("kill_pl", "v[id]", ConKillPlayer, "Kills player v and announces the kill");
 	RconCommand("tele", "?i[id] ?i[id]", ConTeleport, "Teleports player i (or you) to player i (or you to where you look at)");
-	RconCommand("jetpack", "", ConJetpack, "Gives jetpack to you");
 	RconCommand("undeep", "", ConUnDeep, "Puts you out of deep freeze");
 	RconCommand("freezehammer", "v[id]", ConFreezeHammer, "Gives a player Freeze Hammer");
 	RconCommand("unfreezehammer", "v[id]", ConUnFreezeHammer, "Removes Freeze Hammer from a player");
@@ -86,26 +85,6 @@ void CCommandsRconProcessor::ConUnDeep(IConsole::IResult *pResult, void *pUserDa
 		return;
 
 	pPlayer->GetCharacter()->m_DeepFreeze = false;
-}
-
-void CCommandsRconProcessor::ConJetpack(IConsole::IResult *pResult, void *pUserData)
-{
-	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
-	CPlayer *pPlayer = pSelf->GetPlayer(pResult->m_ClientID);
-	if(!pPlayer || !pPlayer->GetCharacter())
-		return;
-
-	pPlayer->GetCharacter()->m_Jetpack = true;
-}
-
-void CCommandsRconProcessor::ConUnJetpack(IConsole::IResult *pResult, void *pUserData)
-{
-	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
-	CPlayer *pPlayer = pSelf->GetPlayer(pResult->m_ClientID);
-	if(!pPlayer || !pPlayer->GetCharacter())
-		return;
-
-	pPlayer->GetCharacter()->m_Jetpack = false;
 }
 
 void CCommandsRconProcessor::ConTeleport(IConsole::IResult *pResult, void *pUserData)

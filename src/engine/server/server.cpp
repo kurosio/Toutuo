@@ -55,6 +55,8 @@
 
 #include <csignal>
 
+#include "sql_connect_pool.h"
+
 volatile sig_atomic_t InterruptSignaled = 0;
 
 CSnapIDPool::CSnapIDPool()
@@ -408,6 +410,7 @@ CServer::CServer()
 	m_aErrorShutdownReason[0] = 0;
 
 	Init();
+	SJK.Init(this);
 }
 
 CServer::~CServer()
@@ -427,6 +430,7 @@ CServer::~CServer()
 
 	delete m_pRegister;
 	delete m_pConnectionPool;
+	SJK.DisconnectConnectionHeap();
 }
 
 bool CServer::IsClientNameAvailable(int ClientID, const char *pNameRequest)

@@ -29,6 +29,8 @@
 
 #include <teeother/components/localization.h>
 
+#include "engine/server/sql_connect_pool.h"
+
 // Not thread-safe!
 class CClientChatLogger : public ILogger
 {
@@ -50,7 +52,7 @@ void CClientChatLogger::Log(const CLogMessage *pMessage)
 {
 	if(str_comp(pMessage->m_aSystem, "chatresp") == 0)
 	{
-		m_pGameServer->SendChatTarget(m_ClientID, pMessage->Message());
+		m_pGameServer->Chat(m_ClientID, pMessage->Message());
 	}
 	else
 	{
@@ -380,27 +382,6 @@ void CGameContext::CallVote(int ClientID, const char *pDesc, const char *pCmd, c
 	pPlayer->m_Vote = 1;
 	pPlayer->m_VotePos = m_VotePos = 1;
 	pPlayer->m_LastVoteCall = Now;
-}
-
-void CGameContext::SendChatTarget(int To, const char *pText)
-{
-	CNetMsg_Sv_Chat Msg;
-	Msg.m_Team = 0;
-	Msg.m_ClientID = -1;
-	Msg.m_pMessage = pText;
-
-	if(g_Config.m_SvDemoChat)
-		Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NOSEND, -1);
-
-	if(To == -1)
-	{
-		for(int i = 0; i < Server()->MaxClients(); i++)
-			Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, i);
-	}
-	else
-	{
-		Server()->SendPackMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_NORECORD, To);
-	}
 }
 
 void CGameContext::SendChat(int ChatterClientID, int Team, const char *pText, int SpamProtectionClientID)
@@ -813,6 +794,15 @@ void CGameContext::OnPreTickTeehistorian()
 
 void CGameContext::OnTick()
 {
+
+	CConectionPool::ResultData pData = SJK.SD("*", "tw_items_list");
+	pData.OnComplete([](IServer *pServer, ResultPtr pRes) 
+	{
+		if(pRes->next())
+		{
+	//		dbg_msg("test", "%s", pRes->getString("Name").c_str());
+		}
+	});
 	// check tuning
 	CheckPureTuning();
 
@@ -955,9 +945,7 @@ void CGameContext::OnTick()
 								continue;
 
 							if(m_apPlayers[j] && !m_apPlayers[j]->m_Afk && m_apPlayers[j]->GetTeam() != TEAM_SPECTATORS &&
-								((Server()->Tick() - m_apPlayers[j]->m_JoinTick) / (Server()->TickSpeed() * 60) > g_Config.m_SvVoteVetoTime ||
-									(m_apPlayers[j]->GetCharacter() && m_apPlayers[j]->GetCharacter()->m_DDRaceState == DDRACE_STARTED &&
-										(Server()->Tick() - m_apPlayers[j]->GetCharacter()->m_StartTime) / (Server()->TickSpeed() * 60) > g_Config.m_SvVoteVetoTime)))
+								(Server()->Tick() - m_apPlayers[j]->m_JoinTick) / (Server()->TickSpeed() * 60) > g_Config.m_SvVoteVetoTime)
 							{
 								if(CurVote == 0)
 									Veto = true;
@@ -1293,7 +1281,7 @@ void CGameContext::OnClientEnter(int ClientID)
 	if(!Server()->ClientPrevIngame(ClientID))
 	{
 		if(g_Config.m_SvWelcome[0] != 0)
-			SendChatTarget(ClientID, g_Config.m_SvWelcome);
+			Chat(ClientID, g_Config.m_SvWelcome);
 
 		if(g_Config.m_SvShowOthersDefault > SHOW_OTHERS_OFF)
 		{
@@ -1652,7 +1640,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 					{
 						if(!Console()->LineIsValid(pOption->m_aCommand))
 						{
-							SendChatTarget(ClientID, "Invalid option");
+							Chat(ClientID, "Invalid option");
 							return;
 						}
 						str_format(aChatmsg, sizeof(aChatmsg), "'%s' called vote to change server option '%s' (%s)", Server()->ClientName(ClientID),
@@ -1680,7 +1668,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 					if(Authed != AUTHED_ADMIN) // allow admins to call any vote they want
 					{
 						str_format(aChatmsg, sizeof(aChatmsg), "'%s' isn't an option on this server", pMsg->m_Value);
-						SendChatTarget(ClientID, aChatmsg);
+						Chat(ClientID, aChatmsg);
 						return;
 					}
 					else
@@ -1703,14 +1691,14 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 					str_format(aChatmsg, sizeof(aChatmsg), "There's a %d second wait time between kick votes for each player please wait %d second(s)",
 						g_Config.m_SvVoteKickDelay,
 						(int)(((m_apPlayers[ClientID]->m_Last_KickVote + (m_apPlayers[ClientID]->m_Last_KickVote * time_freq())) / time_freq()) - (time_get() / time_freq())));
-					SendChatTarget(ClientID, aChatmsg);
+					Chat(ClientID, aChatmsg);
 					m_apPlayers[ClientID]->m_Last_KickVote = time_get();
 					return;
 				}
 				//else if(!g_Config.m_SvVoteKick)
 				else if(!g_Config.m_SvVoteKick && !Authed) // allow admins to call kick votes even if they are forbidden
 				{
-					SendChatTarget(ClientID, "Server does not allow voting to kick players");
+					Chat(ClientID, "Server does not allow voting to kick players");
 					m_apPlayers[ClientID]->m_Last_KickVote = time_get();
 					return;
 				}
@@ -1748,7 +1736,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 					if(NumPlayers < g_Config.m_SvVoteKickMin)
 					{
 						str_format(aChatmsg, sizeof(aChatmsg), "Kick voting requires %d players", g_Config.m_SvVoteKickMin);
-						SendChatTarget(ClientID, aChatmsg);
+						Chat(ClientID, aChatmsg);
 						return;
 					}
 				}
@@ -1757,12 +1745,12 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 
 				if(KickID < 0 || KickID >= MAX_CLIENTS || !m_apPlayers[KickID])
 				{
-					SendChatTarget(ClientID, "Invalid client id to kick");
+					Chat(ClientID, "Invalid client id to kick");
 					return;
 				}
 				if(KickID == ClientID)
 				{
-					SendChatTarget(ClientID, "You can't kick yourself");
+					Chat(ClientID, "You can't kick yourself");
 					return;
 				}
 				if(!Server()->ReverseTranslate(KickID, ClientID))
@@ -1772,11 +1760,11 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				int KickedAuthed = Server()->GetAuthedState(KickID);
 				if(KickedAuthed > Authed)
 				{
-					SendChatTarget(ClientID, "You can't kick authorized players");
+					Chat(ClientID, "You can't kick authorized players");
 					m_apPlayers[ClientID]->m_Last_KickVote = time_get();
 					char aBufKick[128];
 					str_format(aBufKick, sizeof(aBufKick), "'%s' called for vote to kick you", Server()->ClientName(ClientID));
-					SendChatTarget(KickID, aBufKick);
+					Chat(KickID, aBufKick);
 					return;
 				}
 				str_format(aChatmsg, sizeof(aChatmsg), "'%s' called for vote to kick '%s' (%s)", Server()->ClientName(ClientID), Server()->ClientName(KickID), aReason);
@@ -1801,7 +1789,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			{
 				if(!g_Config.m_SvVoteSpectate)
 				{
-					SendChatTarget(ClientID, "Server does not allow voting to move players to spectators");
+					Chat(ClientID, "Server does not allow voting to move players to spectators");
 					return;
 				}
 
@@ -1809,12 +1797,12 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 
 				if(SpectateID < 0 || SpectateID >= MAX_CLIENTS || !m_apPlayers[SpectateID] || m_apPlayers[SpectateID]->GetTeam() == TEAM_SPECTATORS)
 				{
-					SendChatTarget(ClientID, "Invalid client id to move");
+					Chat(ClientID, "Invalid client id to move");
 					return;
 				}
 				if(SpectateID == ClientID)
 				{
-					SendChatTarget(ClientID, "You can't move yourself");
+					Chat(ClientID, "You can't move yourself");
 					return;
 				}
 				if(!Server()->ReverseTranslate(SpectateID, ClientID))
@@ -1854,23 +1842,11 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			if(pPlayer->GetTeam() == pMsg->m_Team || (g_Config.m_SvSpamprotection && pPlayer->m_LastSetTeam && pPlayer->m_LastSetTeam + Server()->TickSpeed() * g_Config.m_SvTeamChangeDelay > Server()->Tick()))
 				return;
 
-			//Kill Protection
-			CCharacter *pChr = pPlayer->GetCharacter();
-			if(pChr)
-			{
-				int CurrTime = (Server()->Tick() - pChr->m_StartTime) / Server()->TickSpeed();
-				if(g_Config.m_SvKillProtection != 0 && CurrTime >= (60 * g_Config.m_SvKillProtection) && pChr->m_DDRaceState == DDRACE_STARTED)
-				{
-					SendChatTarget(ClientID, "Kill Protection enabled. If you really want to join the spectators, first type /kill");
-					return;
-				}
-			}
-
 			// Switch team on given client and kill/respawn them
 			if(m_pController->CanJoinTeam(pMsg->m_Team, ClientID))
 			{
 				if(pPlayer->IsPaused())
-					SendChatTarget(ClientID, "Use /pause first then you can kill");
+					Chat(ClientID, "Use /pause first then you can kill");
 				else
 				{
 					if(pPlayer->GetTeam() == TEAM_SPECTATORS || pMsg->m_Team == TEAM_SPECTATORS)
@@ -1938,7 +1914,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			pPlayer->m_LastSetSpectatorMode = Server()->Tick();
 			pPlayer->UpdatePlaytime();
 			if(pMsg->m_SpectatorID >= 0 && (!m_apPlayers[pMsg->m_SpectatorID] || m_apPlayers[pMsg->m_SpectatorID]->GetTeam() == TEAM_SPECTATORS))
-				SendChatTarget(ClientID, "Invalid spectator id used");
+				Chat(ClientID, "Invalid spectator id used");
 			else
 				pPlayer->m_SpectatorID = pMsg->m_SpectatorID;
 		}
@@ -2031,7 +2007,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 		{
 			if(m_VoteCloseTime && m_VoteCreator == ClientID && (IsKickVote() || IsSpecVote()))
 			{
-				SendChatTarget(ClientID, "You are running a vote please try again after the vote is done!");
+				Chat(ClientID, "You are running a vote please try again after the vote is done!");
 				return;
 			}
 			if(pPlayer->m_LastKill && pPlayer->m_LastKill + Server()->TickSpeed() * g_Config.m_SvKillDelay > Server()->Tick())
@@ -2042,14 +2018,6 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			CCharacter *pChr = pPlayer->GetCharacter();
 			if(!pChr)
 				return;
-
-			//Kill Protection
-			int CurrTime = (Server()->Tick() - pChr->m_StartTime) / Server()->TickSpeed();
-			if(g_Config.m_SvKillProtection != 0 && CurrTime >= (60 * g_Config.m_SvKillProtection) && pChr->m_DDRaceState == DDRACE_STARTED)
-			{
-				SendChatTarget(ClientID, "Kill Protection enabled. If you really want to kill, type /kill");
-				return;
-			}
 
 			pPlayer->m_LastKill = Server()->Tick();
 			pPlayer->KillCharacter(WEAPON_SELF);
@@ -2791,7 +2759,7 @@ int CGameContext::ProcessSpamProtection(int ClientID, bool RespectChatInitialDel
 		return 1;
 	else if(g_Config.m_SvDnsblChat && Server()->DnsblBlack(ClientID))
 	{
-		SendChatTarget(ClientID, "Players are not allowed to chat from VPNs at this time");
+		Chat(ClientID, "Players are not allowed to chat from VPNs at this time");
 		return 1;
 	}
 	else
@@ -2812,9 +2780,7 @@ int CGameContext::ProcessSpamProtection(int ClientID, bool RespectChatInitialDel
 
 	if(Muted > 0)
 	{
-		char aBuf[128];
-		str_format(aBuf, sizeof aBuf, "You are not permitted to talk for the next %d seconds.", Muted);
-		SendChatTarget(ClientID, aBuf);
+		Chat(ClientID, "You are not permitted to talk for the next {INT} seconds.", Muted);
 		return 1;
 	}
 
@@ -3054,15 +3020,13 @@ void CGameContext::Whisper(int ClientID, char *pStr)
 
 	if(Error)
 	{
-		str_format(aBuf, sizeof(aBuf), "Invalid whisper");
-		SendChatTarget(ClientID, aBuf);
+		Chat(ClientID, "Invalid whisper");
 		return;
 	}
 
 	if(Victim >= MAX_CLIENTS || !CheckClientID2(Victim))
 	{
-		str_format(aBuf, sizeof(aBuf), "No player with name \"%s\" found", pName);
-		SendChatTarget(ClientID, aBuf);
+		Chat(ClientID, "No player with name \"{STR}\" found", pName);
 		return;
 	}
 
@@ -3098,8 +3062,7 @@ void CGameContext::WhisperID(int ClientID, int VictimID, const char *pMessage)
 	}
 	else
 	{
-		str_format(aBuf, sizeof(aBuf), "[→ %s] %s", Server()->ClientName(VictimID), aCensoredMessage);
-		SendChatTarget(ClientID, aBuf);
+		Chat(ClientID, "[→ {STR}] {STR}", Server()->ClientName(VictimID), aCensoredMessage);
 	}
 
 	if(GetClientVersion(VictimID) >= VERSION_DDNET_WHISPER)
@@ -3115,8 +3078,7 @@ void CGameContext::WhisperID(int ClientID, int VictimID, const char *pMessage)
 	}
 	else
 	{
-		str_format(aBuf, sizeof(aBuf), "[← %s] %s", Server()->ClientName(ClientID), aCensoredMessage);
-		SendChatTarget(VictimID, aBuf);
+		Chat(ClientID, "[← {STR}] {STR}", Server()->ClientName(ClientID), aCensoredMessage);
 	}
 }
 
@@ -3130,7 +3092,7 @@ void CGameContext::Converse(int ClientID, char *pStr)
 		return;
 
 	if(pPlayer->m_LastWhisperTo < 0)
-		SendChatTarget(ClientID, "You do not have an ongoing conversation. Whisper to someone to start one");
+		Chat(ClientID, "You do not have an ongoing conversation. Whisper to someone to start one");
 	else
 	{
 		WhisperID(ClientID, pPlayer->m_LastWhisperTo, pStr);
@@ -3154,7 +3116,7 @@ void CGameContext::List(int ClientID, const char *pFilter)
 		str_format(aBuf, sizeof(aBuf), "Listing players with \"%s\" in name:", pFilter);
 	else
 		str_format(aBuf, sizeof(aBuf), "Listing all players:");
-	SendChatTarget(ClientID, aBuf);
+	Chat(ClientID, aBuf);
 	for(int i = 0; i < MAX_CLIENTS; i++)
 	{
 		if(m_apPlayers[i])
@@ -3165,7 +3127,7 @@ void CGameContext::List(int ClientID, const char *pFilter)
 				continue;
 			if(Bufcnt + str_length(pName) + 4 > 256)
 			{
-				SendChatTarget(ClientID, aBuf);
+				Chat(ClientID, aBuf);
 				Bufcnt = 0;
 			}
 			if(Bufcnt != 0)
@@ -3181,9 +3143,9 @@ void CGameContext::List(int ClientID, const char *pFilter)
 		}
 	}
 	if(Bufcnt != 0)
-		SendChatTarget(ClientID, aBuf);
+		Chat(ClientID, aBuf);
 	str_format(aBuf, sizeof(aBuf), "%d players online", Total);
-	SendChatTarget(ClientID, aBuf);
+	Chat(ClientID, aBuf);
 }
 
 int CGameContext::GetClientVersion(int ClientID) const
@@ -3222,7 +3184,7 @@ void CGameContext::ForceVote(int EnforcerID, bool Success)
 	char aBuf[256];
 	const char *pOption = Success ? "yes" : "no";
 	str_format(aBuf, sizeof(aBuf), "authorized player forced vote %s", pOption);
-	SendChatTarget(-1, aBuf);
+	Chat(-1, aBuf);
 	str_format(aBuf, sizeof(aBuf), "forcing vote %s", pOption);
 	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
 }
@@ -3235,7 +3197,7 @@ bool CGameContext::RateLimitPlayerVote(int ClientID)
 
 	if(g_Config.m_SvRconVote && !Server()->GetAuthedState(ClientID))
 	{
-		SendChatTarget(ClientID, "You can only vote after logging in.");
+		Chat(ClientID, "You can only vote after logging in.");
 		return true;
 	}
 
@@ -3243,12 +3205,12 @@ bool CGameContext::RateLimitPlayerVote(int ClientID)
 	{
 		if(m_pServer->DnsblPending(ClientID))
 		{
-			SendChatTarget(ClientID, "You are not allowed to vote because we're currently checking for VPNs. Try again in ~30 seconds.");
+			Chat(ClientID, "You are not allowed to vote because we're currently checking for VPNs. Try again in ~30 seconds.");
 			return true;
 		}
 		else if(m_pServer->DnsblBlack(ClientID))
 		{
-			SendChatTarget(ClientID, "You are not allowed to vote because you appear to be using a VPN. Try connecting without a VPN or contacting an admin if you think this is a mistake.");
+			Chat(ClientID, "You are not allowed to vote because you appear to be using a VPN. Try connecting without a VPN or contacting an admin if you think this is a mistake.");
 			return true;
 		}
 	}
@@ -3259,24 +3221,20 @@ bool CGameContext::RateLimitPlayerVote(int ClientID)
 	pPlayer->m_LastVoteTry = Now;
 	if(m_VoteCloseTime)
 	{
-		SendChatTarget(ClientID, "Wait for current vote to end before calling a new one.");
+		Chat(ClientID, "Wait for current vote to end before calling a new one.");
 		return true;
 	}
 
 	if(Now < pPlayer->m_FirstVoteTick)
 	{
-		char aBuf[64];
-		str_format(aBuf, sizeof(aBuf), "You must wait %d seconds before making your first vote.", (int)((pPlayer->m_FirstVoteTick - Now) / TickSpeed) + 1);
-		SendChatTarget(ClientID, aBuf);
+		Chat(ClientID, "You must wait {INT} seconds before making your first vote.", (int)((pPlayer->m_FirstVoteTick - Now) / TickSpeed) + 1);
 		return true;
 	}
 
 	int TimeLeft = pPlayer->m_LastVoteCall + TickSpeed * g_Config.m_SvVoteDelay - Now;
 	if(pPlayer->m_LastVoteCall && TimeLeft > 0)
 	{
-		char aChatmsg[64];
-		str_format(aChatmsg, sizeof(aChatmsg), "You must wait %d seconds before making another vote.", (int)(TimeLeft / TickSpeed) + 1);
-		SendChatTarget(ClientID, aChatmsg);
+		Chat(ClientID, "You must wait {INT} seconds before making another vote.", (int)(TimeLeft / TickSpeed) + 1);
 		return true;
 	}
 
@@ -3293,10 +3251,9 @@ bool CGameContext::RateLimitPlayerVote(int ClientID)
 	}
 	if(VoteMuted > 0)
 	{
-		char aChatmsg[64];
-		str_format(aChatmsg, sizeof(aChatmsg), "You are not permitted to vote for the next %d seconds.", VoteMuted);
-		SendChatTarget(ClientID, aChatmsg);
+		Chat(ClientID, "You are not permitted to vote for the next {INT} seconds.", VoteMuted);
 		return true;
 	}
+
 	return false;
 }

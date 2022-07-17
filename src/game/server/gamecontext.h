@@ -193,7 +193,6 @@ public:
 	};
 	void Chat(int ClientID, const char *pText, ...);
 
-	void SendChatTarget(int To, const char *pText);
 	void SendChat(int ClientID, int Team, const char *pText, int SpamProtectionClientID = -1);
 	
 	// broadcast
