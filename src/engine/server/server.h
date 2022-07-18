@@ -118,8 +118,6 @@ class CServer : public IServer
 	UNIXSOCKET m_ConnLoggingSocket;
 #endif
 
-	class CDbConnectionPool *m_pConnectionPool;
-
 public:
 	class IGameServer *GameServer() override { return m_pGameServer; }
 	class CConfig *Config() { return m_pConfig; }
@@ -127,7 +125,6 @@ public:
 	class IConsole *Console() { return m_pConsole; }
 	class IStorage *Storage() { return m_pStorage; }
 	class IEngineAntibot *Antibot() { return m_pAntibot; }
-	class CDbConnectionPool *DbPool() { return m_pConnectionPool; }
 
 	enum
 	{

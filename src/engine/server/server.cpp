@@ -42,8 +42,6 @@
 #include <vector>
 #include <zlib.h>
 
-#include "databases/connection.h"
-#include "databases/connection_pool.h"
 #include "register.h"
 
 #include <teeother/components/localization.h>
@@ -404,7 +402,6 @@ CServer::CServer()
 	m_ConnLoggingSocketCreated = false;
 #endif
 
-	m_pConnectionPool = new CDbConnectionPool();
 	m_pRegister = nullptr;
 
 	m_aErrorShutdownReason[0] = 0;
@@ -429,7 +426,6 @@ CServer::~CServer()
 	}
 
 	delete m_pRegister;
-	delete m_pConnectionPool;
 	Sqlpool.DisconnectConnectionHeap();
 }
 
@@ -2676,8 +2672,6 @@ int CServer::Run()
 	GameServer()->OnShutdown();
 	m_pMap->Unload();
 
-	DbPool()->OnShutdown();
-
 #if defined(CONF_UPNP)
 	m_UPnP.Shutdown();
 #endif
@@ -3474,11 +3468,6 @@ int main(int argc, const char **argv)
 		dbg_msg("secure", "could not initialize secure RNG");
 		return -1;
 	}
-	if(MysqlInit() != 0)
-	{
-		dbg_msg("mysql", "failed to initialize MySQL library");
-		return -1;
-	}
 
 	signal(SIGINT, HandleSigIntTerm);
 	signal(SIGTERM, HandleSigIntTerm);
@@ -3583,8 +3572,6 @@ int main(int argc, const char **argv)
 	// run the server
 	dbg_msg("server", "starting...");
 	int Ret = pServer->Run();
-
-	MysqlUninit();
 	secure_random_uninit();
 
 	// free

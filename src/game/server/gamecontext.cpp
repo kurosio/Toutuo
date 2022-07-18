@@ -794,17 +794,26 @@ void CGameContext::OnPreTickTeehistorian()
 
 void CGameContext::OnTick()
 {
-	Sqlpool.Prepare<TypeDB::Select>("*", "tw_items_list").AtExecution([](IServer *, ResultPtr) 
+	// thread callback selected
+	Sqlpool.Prepare<TypeDB::Select>("*", "tw_items_list").AtExecution([](IServer *, ResultPtr pRes) 
 	{
-		
+		dbg_msg("test", "results tw_items_list %d", pRes->rowsCount());
 	});
+
+	// other tests
+	auto TransactionSQL = Sqlpool.Prepare<TypeDB::Custom>("START TRANSACTION");
+	TransactionSQL.Execute();
+
 	auto Item = Sqlpool.Prepare<TypeDB::Update>("tw_items_list", "Name = 'Gold' WHERE ItemID = '1'");
 	Item.AtExecution([](IServer *) 
 	{
-		dbg_msg("done", "update done");
+		dbg_msg("done", "update on thread done");
 	});
-	Item.Execute();
 
+	TransactionSQL.UpdateQuery("COMMIT").AtExecution([](IServer *) 
+	{
+		dbg_msg("test", "transaction end");	
+	});
 
 	// check tuning
 	CheckPureTuning();

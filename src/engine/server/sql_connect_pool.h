@@ -21,6 +21,7 @@ enum class TypeDB : size_t
 	Insert,
 	Update,
 	Delete,
+	Custom,
 };
 
 class CConectionPool
@@ -135,7 +136,7 @@ private:
 				try
 				{
 					const std::unique_ptr<Statement> pStmt(pConnection->createStatement());
-					pStmt->executeUpdate(Query.c_str());
+					pStmt->execute(Query.c_str());
 					if(pCallback)
 						pCallback(Sqlpool.m_pServer);
 					pStmt->close();
@@ -155,6 +156,23 @@ private:
 		}
 		void Execute() { return AtExecution(nullptr); }
 	};
+
+	class CResultQueryCustom : public CResultQuery
+	{
+	public:
+		CResultQueryCustom &UpdateQuery(const char *pBuffer, ...)
+		{
+			char aBuf[1024];
+			va_list VarArgs;
+			va_start(VarArgs, pBuffer);
+			vaformatsql(pBuffer, aBuf, sizeof(aBuf), VarArgs);
+			va_end(VarArgs);
+
+			m_Query = std::string(std::string(aBuf) + ";");
+			return *this;
+		}
+	};
+
 
 	static void vaformatsql(const char *pBuffer, char *pBuf, size_t Size, va_list VarArgs)
 	{
@@ -182,7 +200,21 @@ public:
 	}
 
 	template<TypeDB T>
-	static std::enable_if_t<T != TypeDB::Select, CResultQuery> Prepare(const char *pTable, const char *pBuffer, ...)
+	static std::enable_if_t<T == TypeDB::Custom, CResultQueryCustom> Prepare(const char *pBuffer, ...)
+	{
+		char aBuf[1024];
+		va_list VarArgs;
+		va_start(VarArgs, pBuffer);
+		vaformatsql(pBuffer, aBuf, sizeof(aBuf), VarArgs);
+		va_end(VarArgs);
+
+		CResultQueryCustom Data;
+		Data.m_Query = std::string(std::string(aBuf) + ";");
+		return Data;
+	}
+
+	template<TypeDB T>
+	static std::enable_if_t<T != TypeDB::Select && T != TypeDB::Custom, CResultQuery> Prepare(const char *pTable, const char *pBuffer, ...)
 	{
 		char aBuf[1024];
 		va_list VarArgs;
@@ -199,6 +231,7 @@ public:
 			Data.m_Query = std::string("DELETE FROM " + std::string(pTable) + " " + std::string(aBuf) + ";");
 		return Data;
 	}
+
 };
 
 #endif

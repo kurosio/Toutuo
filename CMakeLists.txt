@@ -2142,9 +2142,6 @@ if(GTEST_FOUND OR DOWNLOAD_GTEST)
     src/engine/client/serverbrowser_ping_cache.cpp
     src/engine/client/serverbrowser_ping_cache.h
     src/engine/client/sqlite.cpp
-    src/engine/server/databases/connection.cpp
-    src/engine/server/databases/connection.h
-    src/engine/server/databases/mysql.cpp
     src/engine/server/name_ban.cpp
     src/engine/server/name_ban.h
     src/engine/server/sql_string_helpers.cpp
