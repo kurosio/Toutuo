@@ -3023,8 +3023,6 @@ void CGameContext::Whisper(int ClientID, char *pStr)
 
 	pMessage = pStr;
 
-	char aBuf[256];
-
 	if(Error)
 	{
 		Chat(ClientID, "Invalid whisper");
@@ -3053,9 +3051,6 @@ void CGameContext::WhisperID(int ClientID, int VictimID, const char *pMessage)
 
 	char aCensoredMessage[256];
 	CensorMessage(aCensoredMessage, pMessage, sizeof(aCensoredMessage));
-
-	char aBuf[256];
-
 	if(GetClientVersion(ClientID) >= VERSION_DDNET_WHISPER)
 	{
 		CNetMsg_Sv_Chat Msg;
