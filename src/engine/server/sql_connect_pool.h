@@ -54,7 +54,7 @@ private:
 		std::string m_Query;
 		TypeDB m_TypeQuery;
 	public:
-		const char *GetQuery() const { return m_Query.c_str(); }
+		const char *GetQueryString() const { return m_Query.c_str(); }
 	};
 
 	class CResultSelect : public CResultBase
