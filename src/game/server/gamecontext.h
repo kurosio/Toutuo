@@ -8,13 +8,11 @@
 
 #include <game/collision.h>
 #include <game/layers.h>
-#include <game/mapbugs.h>
 #include <game/voting.h>
 
 #include "eventhandler.h"
 #include "game/generated/protocol.h"
 #include "gameworld.h"
-#include "teehistorian.h"
 
 #include "core/context.h"
 
@@ -59,7 +57,6 @@ class IGameController;
 class IEngine;
 class IStorage;
 struct CAntibotRoundData;
-struct CScoreRandomMapResult;
 
 class CGameContext : public IGameServer
 {
@@ -79,26 +76,10 @@ class CGameContext : public IGameServer
 	CTuningParams m_aTuningList[NUM_TUNEZONES];
 	std::vector<std::string> m_vCensorlist;
 
-	bool m_TeeHistorianActive;
-	CTeeHistorian m_TeeHistorian;
-	ASYNCIO *m_pTeeHistorianFile;
 	CUuid m_GameUuid;
-	CMapBugs m_MapBugs;
 	CPrng m_Prng;
 
-	bool m_Resetting;
-
-	static void CommandCallback(int ClientID, int FlagMask, const char *pCmd, IConsole::IResult *pResult, void *pUser);
-	static void TeeHistorianWrite(const void *pData, int DataSize, void *pUser);
-
-	void Construct(int Resetting);
-	void Destruct(int Resetting);
 	void AddVote(const char *pDescription, const char *pCommand);
-
-	struct CPersistentClientData
-	{
-		bool m_IsSpectator;
-	};
 
 public:
 	IServer *Server() const { return m_pServer; }
@@ -110,14 +91,9 @@ public:
 	CTuningParams *Tuning() { return &m_Tuning; }
 	CTuningParams *TuningList() { return &m_aTuningList[0]; }
 	IAntibot *Antibot() { return m_pAntibot; }
-	CTeeHistorian *TeeHistorian() { return &m_TeeHistorian; }
-	bool TeeHistorianActive() const { return m_TeeHistorianActive; }
 
 	CGameContext();
-	CGameContext(int Reset);
 	~CGameContext();
-
-	void Clear();
 
 	CEventHandler m_Events;
 	CPlayer *m_apPlayers[MAX_CLIENTS];
@@ -133,9 +109,8 @@ public:
 	CGameWorld m_World;
 
 	// helper functions
-	class CPlayer *GetPlayer(int ClientID);
-	class CCharacter *GetPlayerChar(int ClientID);
-	bool EmulateBug(int Bug);
+	class CPlayer *GetPlayer(int ClientID) const;
+	class CCharacter *GetPlayerChar(int ClientID) const;
 	std::vector<SSwitchers> &Switchers() { return m_World.m_Core.m_vSwitchers; }
 
 	// voting
@@ -235,10 +210,8 @@ public:
 	void LoadMapSettings();
 
 	// engine events
-	void OnInit() override;
+	void OnInit(int WorldID) override;
 	void OnConsoleInit() override;
-	void OnMapChange(char *pNewMapName, int MapNameSize) override;
-	void OnShutdown() override;
 
 	void OnTick() override;
 	void OnPreSnap() override;
@@ -247,21 +220,19 @@ public:
 	
 	void CensorMessage(char *pCensoredMessage, const char *pMessage, int Size);
 	void OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID) override;
+	void OnClearClientData(int ClientID) override;
 
-	bool OnClientDataPersist(int ClientID, void *pData) override;
-	void OnClientConnected(int ClientID, void *pData) override;
+	void OnClientConnected(int ClientID) override;
+	void PrepareClientChangeWorld(int ClientID) override;
 	void OnClientEnter(int ClientID) override;
 	void OnClientDrop(int ClientID, const char *pReason) override;
 	void OnClientDirectInput(int ClientID, void *pInput) override;
 	void OnClientPredictedInput(int ClientID, void *pInput) override;
 	void OnClientPredictedEarlyInput(int ClientID, void *pInput) override;
 
-	void OnClientEngineJoin(int ClientID) override;
-	void OnClientEngineDrop(int ClientID, const char *pReason) override;
-
 	bool IsClientReady(int ClientID) const override;
 	bool IsClientPlayer(int ClientID) const override;
-	int PersistentClientDataSize() const override { return sizeof(CPersistentClientData); }
+	int GetWorldID() const { return m_WorldID; }
 
 	CUuid GameUuid() const override;
 	const char *GameType() const override;
@@ -269,7 +240,6 @@ public:
 	const char *NetVersion() const override;
 
 	// DDRace
-	void OnPreTickTeehistorian() override;
 	bool OnClientDDNetVersionKnown(int ClientID);
 	void FillAntibot(CAntibotRoundData *pData) override;
 	int ProcessSpamProtection(int ClientID, bool RespectChatInitialDelay = true);
@@ -303,6 +273,7 @@ private:
 		bool m_InitialChatDelay;
 	};
 
+	int m_WorldID;
 	CMute m_aMutes[MAX_MUTES];
 	int m_NumMutes;
 	CMute m_aVoteMutes[MAX_VOTE_MUTES];

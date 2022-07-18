@@ -18,7 +18,7 @@
 #include "game/teamscore.h"
 static CTeamsCore gs_TeamsCore;
 
-MACRO_ALLOC_POOL_ID_IMPL(CCharacter, MAX_CLIENTS)
+MACRO_ALLOC_POOL_ID_IMPL(CCharacter, MAX_CLIENTS * ENGINE_MAX_WORLDS + MAX_CLIENTS)
 
 // Character, "physical" player's part
 CCharacter::CCharacter(CGameWorld *pWorld, CNetObj_PlayerInput LastInput) :
@@ -88,9 +88,6 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	m_NeededFaketuning = 0; // reset fake tunings on respawn and send the client
 	SendZoneMsgs(); // we want a entermessage also on spawn
 	GameServer()->SendTuningParams(m_pPlayer->GetCID(), m_TuneZone);
-
-	Server()->StartRecord(m_pPlayer->GetCID());
-
 	return true;
 }
 
@@ -777,9 +774,6 @@ bool CCharacter::IncreaseArmor(int Amount)
 
 void CCharacter::Die(int Killer, int Weapon)
 {
-	if(Server()->IsRecording(m_pPlayer->GetCID()))
-		Server()->StopRecord(m_pPlayer->GetCID());
-
 	int ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[Killer], Weapon);
 
 	char aBuf[256];

@@ -6,8 +6,6 @@
 class CCommandsRconProcessor
 {
 	class IServer* m_pServer;
-	class CGameContext* m_pGameServer;
-	CGameContext* GS() const { return m_pGameServer; }
 	IServer* Server() const { return m_pServer; }
 
 	/************************************************************************/
@@ -18,6 +16,7 @@ class CCommandsRconProcessor
 	static void ConTeleport(IConsole::IResult* pResult, void* pUserData);
 	static void ConFreezeHammer(IConsole::IResult* pResult, void* pUserData);
 	static void ConUnFreezeHammer(IConsole::IResult* pResult, void* pUserData);
+	static void ConChangeWorld(IConsole::IResult* pResult, void* pUserData);
 
 	/************************************************************************/
 	/*  Tunning                                                             */
@@ -40,7 +39,6 @@ class CCommandsRconProcessor
 	/************************************************************************/
 	static void ConBroadcast(IConsole::IResult* pResult, void* pUserData);
 	static void ConSay(IConsole::IResult* pResult, void* pUserData);
-	static void ConDumpAntibot(IConsole::IResult* pResult, void* pUserData);
 
 	/************************************************************************/
 	/*  Chain                                                               */
@@ -49,7 +47,7 @@ class CCommandsRconProcessor
 
 public:
 	CCommandsRconProcessor() = default;
-	void Init(class IServer* pServer, class IConsole *pConsole, CGameContext* pGameServer);
+	void Init(class IServer* pServer, class IConsole *pConsole);
 };
 
 #endif

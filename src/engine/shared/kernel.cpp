@@ -7,7 +7,7 @@ class CKernel : public IKernel
 {
 	enum
 	{
-		MAX_INTERFACES = 32,
+		MAX_INTERFACES = 256,
 	};
 
 	class CInterfaceInfo
@@ -15,11 +15,13 @@ class CKernel : public IKernel
 	public:
 		CInterfaceInfo()
 		{
+			m_aID = 0;
 			m_aName[0] = 0;
-			m_pInterface = 0x0;
+			m_pInterface = nullptr;
 			m_AutoDestroy = false;
 		}
 
+		int m_aID;
 		char m_aName[64];
 		IInterface *m_pInterface;
 		bool m_AutoDestroy;
@@ -28,14 +30,14 @@ class CKernel : public IKernel
 	CInterfaceInfo m_aInterfaces[MAX_INTERFACES];
 	int m_NumInterfaces;
 
-	CInterfaceInfo *FindInterfaceInfo(const char *pName)
+	CInterfaceInfo *FindInterfaceInfo(const char *pName, int ID = 0)
 	{
 		for(int i = 0; i < m_NumInterfaces; i++)
 		{
-			if(str_comp(pName, m_aInterfaces[i].m_aName) == 0)
+			if(ID == m_aInterfaces[i].m_aID && str_comp(pName, m_aInterfaces[i].m_aName) == 0)
 				return &m_aInterfaces[i];
 		}
-		return 0x0;
+		return nullptr;
 	}
 
 public:
@@ -44,7 +46,7 @@ public:
 		m_NumInterfaces = 0;
 	}
 
-	virtual ~CKernel()
+	~CKernel() override
 	{
 		// delete interfaces in reverse order just the way it would happen to objects on the stack
 		for(int i = m_NumInterfaces - 1; i >= 0; i--)
@@ -52,12 +54,12 @@ public:
 			if(m_aInterfaces[i].m_AutoDestroy)
 			{
 				delete m_aInterfaces[i].m_pInterface;
-				m_aInterfaces[i].m_pInterface = 0;
+				m_aInterfaces[i].m_pInterface = nullptr;
 			}
 		}
 	}
 
-	bool RegisterInterfaceImpl(const char *pName, IInterface *pInterface, bool Destroy) override
+	bool RegisterInterfaceImpl(const char *pName, IInterface *pInterface, bool Destroy, int ID = 0) override
 	{
 		// TODO: More error checks here
 		if(!pInterface)
@@ -72,7 +74,7 @@ public:
 			return false;
 		}
 
-		if(FindInterfaceInfo(pName) != 0)
+		if(FindInterfaceInfo(pName, ID) != nullptr)
 		{
 			dbg_msg("kernel", "ERROR: couldn't register interface '%s'. interface already exists", pName);
 			return false;
@@ -80,6 +82,7 @@ public:
 
 		pInterface->m_pKernel = this;
 		m_aInterfaces[m_NumInterfaces].m_pInterface = pInterface;
+		m_aInterfaces[m_NumInterfaces].m_aID = ID;
 		str_copy(m_aInterfaces[m_NumInterfaces].m_aName, pName, sizeof(m_aInterfaces[m_NumInterfaces].m_aName));
 		m_aInterfaces[m_NumInterfaces].m_AutoDestroy = Destroy;
 		m_NumInterfaces++;
@@ -87,9 +90,9 @@ public:
 		return true;
 	}
 
-	bool ReregisterInterfaceImpl(const char *pName, IInterface *pInterface) override
+	bool ReregisterInterfaceImpl(const char *pName, IInterface *pInterface, int ID = 0) override
 	{
-		if(FindInterfaceInfo(pName) == 0)
+		if(FindInterfaceInfo(pName, ID) == nullptr)
 		{
 			dbg_msg("kernel", "ERROR: couldn't reregister interface '%s'. interface doesn't exist", pName);
 			return false;
@@ -100,13 +103,13 @@ public:
 		return true;
 	}
 
-	IInterface *RequestInterfaceImpl(const char *pName) override
+	IInterface *RequestInterfaceImpl(const char *pName, int ID = 0) override
 	{
-		CInterfaceInfo *pInfo = FindInterfaceInfo(pName);
+		const CInterfaceInfo *pInfo = FindInterfaceInfo(pName, ID);
 		if(!pInfo)
 		{
-			dbg_msg("kernel", "failed to find interface with the name '%s'", pName);
-			return 0;
+			dbg_msg("kernel", "failed to find interface with the name '%s', ID '%d'", pName, ID);
+			return nullptr;
 		}
 		return pInfo->m_pInterface;
 	}

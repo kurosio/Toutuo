@@ -3,7 +3,12 @@
 #include "map.h"
 #include <engine/storage.h>
 
-CMap::CMap() = default;
+CMap::CMap() : m_CurrentMapSize(0), m_pCurrentMapData(0x0) {}
+CMap::~CMap()
+{
+	free(m_pCurrentMapData);
+	m_pCurrentMapData = 0x0;
+}
 
 void *CMap::GetData(int Index)
 {
@@ -45,6 +50,9 @@ int CMap::NumItems()
 void CMap::Unload()
 {
 	m_DataFile.Close();
+	free(m_pCurrentMapData);
+	m_pCurrentMapData = nullptr;
+	m_CurrentMapSize = 0;
 }
 
 bool CMap::Load(const char *pMapName)
@@ -78,6 +86,26 @@ int CMap::MapSize()
 IOHANDLE CMap::File()
 {
 	return m_DataFile.File();
+}
+
+
+void CMap::SetMapData(unsigned char *CurrentMapData)
+{
+	m_pCurrentMapData = CurrentMapData;
+}
+unsigned char *CMap::GetMapData()
+{
+	return m_pCurrentMapData;
+}
+
+
+void CMap::SetMapSize(size_t Size)
+{
+	m_CurrentMapSize = Size;
+}
+size_t CMap::GetMapSize()
+{
+	return m_CurrentMapSize;
 }
 
 extern IEngineMap *CreateEngineMap() { return new CMap; }

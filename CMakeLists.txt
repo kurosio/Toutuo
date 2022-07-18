@@ -2146,8 +2146,6 @@ if(GTEST_FOUND OR DOWNLOAD_GTEST)
     src/engine/server/name_ban.h
     src/engine/server/sql_string_helpers.cpp
     src/engine/server/sql_string_helpers.h
-    src/game/server/teehistorian.cpp
-    src/game/server/teehistorian.h
   )
 
   set(TARGET_TESTRUNNER testrunner)

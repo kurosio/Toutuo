@@ -317,15 +317,10 @@ void IGameController::StartRound()
 	m_GameOverTick = -1;
 	GameServer()->m_World.m_Paused = false;
 	m_ForceBalanced = false;
-	Server()->DemoRecorder_HandleAutoStart();
+
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "start round type='%s' teamplay='%d'", m_pGameType, m_GameFlags & GAMEFLAG_TEAMS);
 	GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
-}
-
-void IGameController::ChangeMap(const char *pToMap)
-{
-	Server()->ChangeMap(pToMap);
 }
 
 void IGameController::OnReset()

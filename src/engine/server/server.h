@@ -8,7 +8,6 @@
 #include <engine/console.h>
 #include <engine/server.h>
 
-#include <engine/shared/demo.h>
 #include <engine/shared/econ.h>
 #include <engine/shared/fifo.h>
 #include <engine/shared/netban.h>
@@ -34,7 +33,6 @@ class CHostLookup;
 class CLogMessage;
 class CMsgPacker;
 class CPacker;
-class IEngineMap;
 
 class CSnapIDPool
 {
@@ -100,13 +98,12 @@ public:
 class CServer : public IServer
 {
 	friend class CServerLogger;
-
-	class IGameServer *m_pGameServer;
 	class CConfig *m_pConfig;
 	class IConsole *m_pConsole;
 	class IStorage *m_pStorage;
 	class IEngineAntibot *m_pAntibot;
 	class IRegister *m_pRegister;
+	class CMultiWorlds *m_pMultiWorlds;
 
 #if defined(CONF_UPNP)
 	CUPnP m_UPnP;
@@ -119,12 +116,13 @@ class CServer : public IServer
 #endif
 
 public:
-	class IGameServer *GameServer() override { return m_pGameServer; }
+	class IGameServer *GameServer(int WorldID = 0) override;
 	class CConfig *Config() { return m_pConfig; }
 	const CConfig *Config() const { return m_pConfig; }
 	class IConsole *Console() { return m_pConsole; }
 	class IStorage *Storage() { return m_pStorage; }
 	class IEngineAntibot *Antibot() { return m_pAntibot; }
+	class CMultiWorlds *MultiWorlds() const { return m_pMultiWorlds; }
 
 	enum
 	{
@@ -188,10 +186,11 @@ public:
 		int m_Flags;
 		bool m_ShowIps;
 
-		const IConsole::CCommandInfo *m_pRconCmdToSend;
+		int m_WorldID;
+		int m_OldWorldID;
+		bool m_ChangeMap;
 
-		bool m_HasPersistentData;
-		void *m_pPersistentData;
+		const IConsole::CCommandInfo *m_pRconCmdToSend;
 
 		void Reset();
 
@@ -221,8 +220,6 @@ public:
 #endif
 	CServerBan m_ServerBan;
 
-	IEngineMap *m_pMap;
-
 	int64_t m_GameStartTime;
 	//int m_CurrentGameTick;
 
@@ -235,20 +232,12 @@ public:
 
 	int m_RunServer;
 
-	bool m_MapReload;
-	bool m_ReloadedWhenEmpty;
+	bool m_HeavyReload;
 	int m_RconClientID;
 	int m_RconAuthLevel;
 	int m_PrintCBIndex;
 	char m_aShutdownReason[128];
 
-	char m_aCurrentMap[IO_MAX_PATH_LENGTH];
-	SHA256_DIGEST m_CurrentMapSha256;
-	unsigned m_CurrentMapCrc;
-	unsigned char *m_pCurrentMapData;
-	unsigned int m_CurrentMapSize;
-
-	CDemoRecorder m_aDemoRecorder[MAX_CLIENTS + 1];
 	CAuthManager m_AuthManager;
 
 	int64_t m_ServerInfoFirstRequest;
@@ -273,11 +262,12 @@ public:
 	void SetClientLanguage(int ClientID, const char *pLanguage) override;
 	const char *GetClientLanguage(int ClientID) const override;
 
+	void ChangeWorld(int ClientID, int NewWorldID) override;
+	int GetClientWorldID(int ClientID) override;
+	const char *GetWorldName(int WorldID) override;
+
 	void Kick(int ClientID, const char *pReason) override;
 	void Ban(int ClientID, int Seconds, const char *pReason) override;
-
-	void DemoRecorder_HandleAutoStart() override;
-	bool DemoRecorder_IsRecording() override;
 
 	//int Tick()
 	int64_t TickStartTime(int Tick);
@@ -289,7 +279,7 @@ public:
 	void SetRconCID(int ClientID) override;
 	int GetAuthedState(int ClientID) const override;
 	const char *GetAuthName(int ClientID) const override;
-	void GetMapInfo(char *pMapName, int MapNameSize, int *pMapSize, SHA256_DIGEST *pMapSha256, int *pMapCrc) override;
+	void GetMapInfo(int WorldID, char *pMapName, int MapNameSize, int *pMapSize, SHA256_DIGEST *pMapSha256, int *pMapCrc) override;
 	int GetClientInfo(int ClientID, CClientInfo *pInfo) const override;
 	void SetClientDDNetVersion(int ClientID, int DDNetVersion) override;
 	void GetClientAddr(int ClientID, char *pAddrStr, int Size) const override;
@@ -303,9 +293,9 @@ public:
 	int ClientCount() const override;
 	int DistinctClientCount() const override;
 
-	int SendMsg(CMsgPacker *pMsg, int Flags, int ClientID) override;
+	virtual int SendMsg(CMsgPacker *pMsg, int Flags, int ClientID, int64_t Mask = -1, int WorldID = -1);
 
-	void DoSnapshot();
+	void DoSnapshot(int WorldID);
 
 	static int NewClientCallback(int ClientID, void *pUser);
 	static int NewClientNoAuthCallback(int ClientID, void *pUser);
@@ -361,14 +351,8 @@ public:
 
 	void PumpNetwork(bool PacketWaiting);
 
-	void ChangeMap(const char *pMap) override;
 	const char *GetMapName() const override;
-	int LoadMap(const char *pMapName);
-
-	void SaveDemo(int ClientID, float Time) override;
-	void StartRecord(int ClientID) override;
-	void StopRecord(int ClientID) override;
-	bool IsRecording(int ClientID) override;
+	bool LoadMap(int ID);
 
 	int Run();
 
@@ -376,9 +360,6 @@ public:
 	static void ConKick(IConsole::IResult *pResult, void *pUser);
 	static void ConStatus(IConsole::IResult *pResult, void *pUser);
 	static void ConShutdown(IConsole::IResult *pResult, void *pUser);
-	static void ConRecord(IConsole::IResult *pResult, void *pUser);
-	static void ConStopRecord(IConsole::IResult *pResult, void *pUser);
-	static void ConMapReload(IConsole::IResult *pResult, void *pUser);
 	static void ConLogout(IConsole::IResult *pResult, void *pUser);
 	static void ConShowIps(IConsole::IResult *pResult, void *pUser);
 
@@ -405,7 +386,6 @@ public:
 	static void ConchainRconPasswordChange(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void ConchainRconModPasswordChange(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void ConchainRconHelperPasswordChange(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
-	static void ConchainMapUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 
 #if defined(CONF_FAMILY_UNIX)
 	static void ConchainConnLoggingServerChange(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);

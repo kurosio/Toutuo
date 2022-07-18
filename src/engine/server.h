@@ -30,7 +30,7 @@ protected:
 	int m_TickSpeed;
 
 public:
-	virtual class IGameServer *GameServer() = 0;
+	virtual class IGameServer *GameServer(int WorldID) = 0;
 
 	class CLocalization *m_pLocalization;
 	class CLocalization *Localization() { return m_pLocalization; }
@@ -65,7 +65,7 @@ public:
 	virtual void SetClientLanguage(int ClientID, const char *pLanguage) = 0;
 	virtual const char *GetClientLanguage(int ClientID) const = 0;
 
-	virtual int SendMsg(CMsgPacker *pMsg, int Flags, int ClientID) = 0;
+	virtual int SendMsg(CMsgPacker *pMsg, int Flags, int ClientID, int64_t Mask = -1, int WorldID = -1) = 0;
 
 	template<class T>
 	inline int SendPackMsg(T *pMsg, int Flags, int ClientID)
@@ -173,7 +173,7 @@ public:
 		return true;
 	}
 
-	virtual void GetMapInfo(char *pMapName, int MapNameSize, int *pMapSize, SHA256_DIGEST *pSha256, int *pMapCrc) = 0;
+	virtual void GetMapInfo(int WorldID, char *pMapName, int MapNameSize, int *pMapSize, SHA256_DIGEST *pSha256, int *pMapCrc) = 0;
 
 	virtual bool WouldClientNameChange(int ClientID, const char *pNameRequest) = 0;
 	virtual void SetClientName(int ClientID, char const *pName) = 0;
@@ -181,6 +181,10 @@ public:
 	virtual void SetClientCountry(int ClientID, int Country) = 0;
 	virtual void SetClientScore(int ClientID, int Score) = 0;
 	virtual void SetClientFlags(int ClientID, int Flags) = 0;
+
+	virtual void ChangeWorld(int ClientID, int NewWorldID) = 0;
+	virtual int GetClientWorldID(int ClientID) = 0;
+	virtual const char *GetWorldName(int WorldID) = 0;
 
 	virtual int SnapNewID() = 0;
 	virtual void SnapFreeID(int ID) = 0;
@@ -198,18 +202,8 @@ public:
 	virtual const char *GetAuthName(int ClientID) const = 0;
 	virtual void Kick(int ClientID, const char *pReason) = 0;
 	virtual void Ban(int ClientID, int Seconds, const char *pReason) = 0;
-	virtual void ChangeMap(const char *pMap) = 0;
-
-	virtual void DemoRecorder_HandleAutoStart() = 0;
-	virtual bool DemoRecorder_IsRecording() = 0;
 
 	// DDRace
-
-	virtual void SaveDemo(int ClientID, float Time) = 0;
-	virtual void StartRecord(int ClientID) = 0;
-	virtual void StopRecord(int ClientID) = 0;
-	virtual bool IsRecording(int ClientID) = 0;
-
 	virtual void GetClientAddr(int ClientID, NETADDR *pAddr) const = 0;
 
 	virtual int *GetIdMap(int ClientID) = 0;
@@ -237,12 +231,8 @@ class IGameServer : public IInterface
 	MACRO_INTERFACE("gameserver", 0)
 protected:
 public:
-	virtual void OnInit() = 0;
+	virtual void OnInit(int WorldID) = 0;
 	virtual void OnConsoleInit() = 0;
-	virtual void OnMapChange(char *pNewMapName, int MapNameSize) = 0;
-
-	// FullShutdown is true if the program is about to exit (not if the map is changed)
-	virtual void OnShutdown() = 0;
 
 	virtual void OnTick() = 0;
 	virtual void OnPreSnap() = 0;
@@ -250,22 +240,11 @@ public:
 	virtual void OnPostSnap() = 0;
 
 	virtual void OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID) = 0;
-
-	// Called before map reload, for any data that the game wants to
-	// persist to the next map.
-	//
-	// Has the size of the return value of `PersistentClientDataSize()`.
-	//
-	// Returns whether the game should be supplied with the data when the
-	// client connects for the next map.
-	virtual bool OnClientDataPersist(int ClientID, void *pData) = 0;
+	virtual void OnClearClientData(int ClientID) = 0;
 
 	// Called when a client connects.
-	//
-	// If it is reconnecting to the game after a map change, the
-	// `pPersistentData` point is nonnull and contains the data the game
-	// previously stored.
-	virtual void OnClientConnected(int ClientID, void *pPersistentData) = 0;
+	virtual void OnClientConnected(int ClientID) = 0;
+	virtual void PrepareClientChangeWorld(int ClientID) = 0;
 
 	virtual void OnClientEnter(int ClientID) = 0;
 	virtual void OnClientDrop(int ClientID, const char *pReason) = 0;
@@ -276,23 +255,14 @@ public:
 	virtual bool IsClientReady(int ClientID) const = 0;
 	virtual bool IsClientPlayer(int ClientID) const = 0;
 
-	virtual int PersistentClientDataSize() const = 0;
-
 	virtual CUuid GameUuid() const = 0;
 	virtual const char *GameType() const = 0;
 	virtual const char *Version() const = 0;
 	virtual const char *NetVersion() const = 0;
 
 	// DDRace
-
-	virtual void OnPreTickTeehistorian() = 0;
-
 	virtual void OnSetAuthed(int ClientID, int Level) = 0;
 	virtual bool PlayerExists(int ClientID) const = 0;
-
-	virtual void OnClientEngineJoin(int ClientID) = 0;
-	virtual void OnClientEngineDrop(int ClientID, const char *pReason) = 0;
-
 	virtual void FillAntibot(CAntibotRoundData *pData) = 0;
 };
 

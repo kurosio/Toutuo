@@ -6,8 +6,6 @@
 class CCommandsChatProcessor
 {
 	class IServer *m_pServer;
-	class CGameContext *m_pGameServer;
-	CGameContext *GS() const { return m_pGameServer; }
 	IServer *Server() const { return m_pServer; }
 
 	static void ConCredits(IConsole::IResult *pResult, void *pUserData);
@@ -22,8 +20,8 @@ class CCommandsChatProcessor
 
 public:
 	CCommandsChatProcessor() = default;
-	void Init(class IServer *pServer, class IConsole *pConsole, class CGameContext *pGameServer);
-	void Execute(CNetMsg_Cl_Say *pMsg, CPlayer *pPlayer);
+	void Init(class IServer *pServer, class IConsole *pConsole);
+	void Execute(CNetMsg_Cl_Say *pMsg, CGameContext* pGS, CPlayer *pPlayer);
 };
 
 #endif

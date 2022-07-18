@@ -152,18 +152,10 @@ void CProjectile::Tick()
 	{
 		if(m_Explosive /*??*/ && (!pTargetChr || (pTargetChr && (!m_Freeze || (m_Type == WEAPON_SHOTGUN && Collide)))))
 		{
-			int Number = 1;
-			if(GameServer()->EmulateBug(BUG_GRENADE_DOUBLEEXPLOSION) && m_LifeSpan == -1)
-			{
-				Number = 2;
-			}
-			for(int i = 0; i < Number; i++)
-			{
-				GameServer()->CreateExplosion(ColPos, m_Owner, m_Type, m_Owner == -1, (!pTargetChr ? -1 : pTargetChr->EventGroup()),
-					(m_Owner != -1) ? TeamMask : -1LL);
-				GameServer()->CreateSound(ColPos, m_SoundImpact,
-					(m_Owner != -1) ? TeamMask : -1LL);
-			}
+			GameServer()->CreateExplosion(ColPos, m_Owner, m_Type, m_Owner == -1, (!pTargetChr ? -1 : pTargetChr->EventGroup()),
+				(m_Owner != -1) ? TeamMask : -1LL);
+			GameServer()->CreateSound(ColPos, m_SoundImpact,
+				(m_Owner != -1) ? TeamMask : -1LL);
 		}
 		else if(m_Freeze)
 		{

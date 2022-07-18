@@ -14,7 +14,7 @@
 #include <game/gamecore.h>
 #include <game/version.h>
 
-MACRO_ALLOC_POOL_ID_IMPL(CPlayer, MAX_CLIENTS)
+MACRO_ALLOC_POOL_ID_IMPL(CPlayer, MAX_CLIENTS * ENGINE_MAX_WORLDS + MAX_CLIENTS)
 
 IServer *CPlayer::Server() const { return m_pGameServer->Server(); }
 
@@ -26,12 +26,10 @@ CPlayer::CPlayer(CGameContext *pGameServer, uint32_t UniqueClientID, int ClientI
 	m_Team = GameServer()->m_pController->ClampTeam(Team);
 	m_NumInputs = 0;
 	Reset();
-	GameServer()->Antibot()->OnPlayerInit(m_ClientID);
 }
 
 CPlayer::~CPlayer()
 {
-	GameServer()->Antibot()->OnPlayerDestroy(m_ClientID);
 	delete m_pLastTarget;
 	delete m_pCharacter;
 	m_pCharacter = nullptr;
@@ -295,18 +293,13 @@ void CPlayer::Snap(int SnappingClient)
 
 	int SnappingClientVersion = SnappingClient != SERVER_DEMO_CLIENT ? GameServer()->GetClientVersion(SnappingClient) : CLIENT_VERSIONNR;
 	int Latency = SnappingClient == SERVER_DEMO_CLIENT ? m_Latency.m_Min : GameServer()->m_apPlayers[SnappingClient]->m_aCurLatency[m_ClientID];
-	int Score = abs(m_Score) * -1;
-
-	// send 0 if times of others are not shown
-	if(SnappingClient != m_ClientID && g_Config.m_SvHideScore)
-		Score = -9999;
 
 	CNetObj_PlayerInfo *pPlayerInfo = static_cast<CNetObj_PlayerInfo *>(Server()->SnapNewItem(NETOBJTYPE_PLAYERINFO, id, sizeof(CNetObj_PlayerInfo)));
 	if(!pPlayerInfo)
 		return;
 
 	pPlayerInfo->m_Latency = Latency;
-	pPlayerInfo->m_Score = Score;
+	pPlayerInfo->m_Score = 0;
 	pPlayerInfo->m_Local = (int)(m_ClientID == SnappingClient && (m_Paused != PAUSE_PAUSED || SnappingClientVersion >= VERSION_DDNET_OLD));
 	pPlayerInfo->m_ClientID = id;
 	pPlayerInfo->m_Team = m_Team;
@@ -492,7 +485,8 @@ void CPlayer::Respawn(bool WeakHook)
 CCharacter *CPlayer::ForceSpawn(vec2 Pos)
 {
 	m_Spawning = false;
-	m_pCharacter = new(m_ClientID) CCharacter(&GameServer()->m_World, GameServer()->GetLastPlayerInput(m_ClientID));
+	const int AllocMemoryCell = MAX_CLIENTS * GameServer()->GetWorldID() + m_ClientID;
+	m_pCharacter = new(AllocMemoryCell) CCharacter(&GameServer()->m_World, GameServer()->GetLastPlayerInput(m_ClientID));
 	m_pCharacter->Spawn(this, Pos);
 	m_Team = 0;
 	return m_pCharacter;
@@ -558,7 +552,8 @@ void CPlayer::TryRespawn()
 
 	m_WeakHookSpawn = false;
 	m_Spawning = false;
-	m_pCharacter = new(m_ClientID) CCharacter(&GameServer()->m_World, GameServer()->GetLastPlayerInput(m_ClientID));
+	const int AllocMemoryCell = MAX_CLIENTS * GameServer()->GetWorldID() + m_ClientID;
+	m_pCharacter = new(AllocMemoryCell) CCharacter(&GameServer()->m_World, GameServer()->GetLastPlayerInput(m_ClientID));
 	m_ViewPos = SpawnPos;
 	m_pCharacter->Spawn(this, SpawnPos);
 	GameServer()->CreatePlayerSpawn(SpawnPos, GameServer()->m_pController->GetMaskForPlayerWorldEvent(m_ClientID));
@@ -701,4 +696,9 @@ void CPlayer::SpectatePlayerName(const char *pName)
 			return;
 		}
 	}
+}
+
+int CPlayer::GetPlayerWorldID() const
+{
+	return Server()->GetClientWorldID(m_ClientID);
 }

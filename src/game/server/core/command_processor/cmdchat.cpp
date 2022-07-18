@@ -6,12 +6,11 @@
 
 #include "cmdchat.h"
 
-void CCommandsChatProcessor::Init(IServer *pServer, IConsole *pConsole, CGameContext *pGameServer)
+void CCommandsChatProcessor::Init(IServer *pServer, IConsole *pConsole)
 {
 	m_pServer = pServer;
-	m_pGameServer = pGameServer;
 
-#define ChatCommand(name, params, callback, help) pConsole->Register(name, params, CFGFLAG_CHAT, callback, m_pGameServer, help)
+#define ChatCommand(name, params, callback, help) pConsole->Register(name, params, CFGFLAG_CHAT, callback, m_pServer, help)
 
 	ChatCommand("credits", "", ConCredits, "Shows the credits of the DDNet mod");
 	ChatCommand("rules", "", ConRules, "Shows the server rules");
@@ -30,59 +29,70 @@ void CCommandsChatProcessor::Init(IServer *pServer, IConsole *pConsole, CGameCon
 
 void CCommandsChatProcessor::ConCredits(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
-	pSelf->Chat(pResult->m_ClientID, "Is nothing more than Teeworlds by Teeworlds staff");
-	pSelf->Chat(pResult->m_ClientID, "Based on DDNet staff (DDNet.tw/staff)");
+	const int ClientID = pResult->m_ClientID;
+	IServer *pServer = (IServer *)pUserData;
+	CGameContext *pGS = (CGameContext *)pServer->GameServer(pServer->GetClientWorldID(ClientID));
+
+	pGS->Chat(pResult->m_ClientID, "Is nothing more than Teeworlds by Teeworlds staff");
+	pGS->Chat(pResult->m_ClientID, "Based on DDNet staff (DDNet.tw/staff)");
 }
 
 void CCommandsChatProcessor::ConInfo(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 	const int ClientID = pResult->m_ClientID;
-	pSelf->Chat(ClientID, "DDraceNetwork Mod. Version: " GAME_VERSION);
+	IServer *pServer = (IServer *)pUserData;
+	CGameContext *pGS = (CGameContext *)pServer->GameServer(pServer->GetClientWorldID(ClientID));
+
+	pGS->Chat(ClientID, "DDraceNetwork Mod. Version: " GAME_VERSION);
 	if(GIT_SHORTREV_HASH)
-		pSelf->Chat(ClientID, "Git revision hash: {STR}", GIT_SHORTREV_HASH);
-	pSelf->Chat(ClientID, "For more info: /cmdlist");
+		pGS->Chat(ClientID, "Git revision hash: {STR}", GIT_SHORTREV_HASH);
+	pGS->Chat(ClientID, "For more info: /cmdlist");
 }
 
 void CCommandsChatProcessor::ConList(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 	const int ClientID = pResult->m_ClientID;
-	if(pSelf->GetPlayer(ClientID))
-		pSelf->List(ClientID, (pResult->NumArguments() > 0 ? pResult->GetString(0) : "\0"));
+	IServer *pServer = (IServer *)pUserData;
+	CGameContext *pGS = (CGameContext *)pServer->GameServer(pServer->GetClientWorldID(ClientID));
+
+	if(pGS->GetPlayer(ClientID))
+		pGS->List(ClientID, (pResult->NumArguments() > 0 ? pResult->GetString(0) : "\0"));
 }
 
 void CCommandsChatProcessor::ConHelp(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 	const int ClientID = pResult->m_ClientID;
+	IServer *pServer = (IServer *)pUserData;
+	CGameContext *pGS = (CGameContext *)pServer->GameServer(pServer->GetClientWorldID(ClientID));
+
 	if(pResult->NumArguments() == 0)
 	{
-		pSelf->Chat(ClientID, "cmdlist will show a list of all chat commands");
-		pSelf->Chat(ClientID, "/help + any command will show you the help for this command");
-		pSelf->Chat(ClientID, "Example /help settings will display the help about /settings");
+		pGS->Chat(ClientID, "cmdlist will show a list of all chat commands");
+		pGS->Chat(ClientID, "/help + any command will show you the help for this command");
+		pGS->Chat(ClientID, "Example /help settings will display the help about /settings");
 		return;
 	}
 
 	const char *pArg = pResult->GetString(0);
-	const IConsole::CCommandInfo *pCmdInfo = pSelf->Console()->GetCommandInfo(pArg, CFGFLAG_CHAT, false);
+	const IConsole::CCommandInfo *pCmdInfo = pGS->Console()->GetCommandInfo(pArg, CFGFLAG_CHAT, false);
 	if(pCmdInfo)
 	{
 		if(pCmdInfo->m_pParams)
-			pSelf->Chat(ClientID, "Usage: {STR} {STR}", pCmdInfo->m_pName, pCmdInfo->m_pParams);
+			pGS->Chat(ClientID, "Usage: {STR} {STR}", pCmdInfo->m_pName, pCmdInfo->m_pParams);
 		if(pCmdInfo->m_pHelp)
-			pSelf->Chat(ClientID, pCmdInfo->m_pHelp);
+			pGS->Chat(ClientID, pCmdInfo->m_pHelp);
 		return;
 	}
 
-	pSelf->Chat(ClientID, "Command is either unknown or you have given a blank command without any parameters.");
+	pGS->Chat(ClientID, "Command is either unknown or you have given a blank command without any parameters.");
 }
 
 void CCommandsChatProcessor::ConRules(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 	const int ClientID = pResult->m_ClientID;
+	IServer *pServer = (IServer *)pUserData;
+	CGameContext *pGS = (CGameContext *)pServer->GameServer(pServer->GetClientWorldID(ClientID));
+
 	bool Printed = false;
 #define _RL(n) g_Config.m_SvRulesLine##n
 	char *pRuleLines[] = {_RL(1), _RL(2), _RL(3), _RL(4), _RL(5), _RL(6), _RL(7), _RL(8), _RL(9), _RL(10)};
@@ -90,54 +100,58 @@ void CCommandsChatProcessor::ConRules(IConsole::IResult *pResult, void *pUserDat
 	{
 		if(pRuleLine[0])
 		{
-			pSelf->Chat(ClientID, pRuleLine);
+			pGS->Chat(ClientID, pRuleLine);
 			Printed = true;
 		}
 	}
 	if(!Printed)
-		pSelf->Chat(ClientID, "No Rules Defined, Kill em all!!");
+		pGS->Chat(ClientID, "No Rules Defined, Kill em all!!");
 }
 
 void CCommandsChatProcessor::ConTimeout(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 	const int ClientID = pResult->m_ClientID;
-	CPlayer *pPlayer = pSelf->GetPlayer(ClientID);
+	IServer *pServer = (IServer *)pUserData;
+	CGameContext *pGS = (CGameContext *)pServer->GameServer(pServer->GetClientWorldID(ClientID));
+
+	CPlayer *pPlayer = pGS->GetPlayer(ClientID);
 	if(!pPlayer)
 		return;
 
 	const char *pTimeout = pResult->NumArguments() > 0 ? pResult->GetString(0) : pPlayer->m_aTimeoutCode;
-	for(int i = 0; i < pSelf->Server()->MaxClients(); i++)
+	for(int i = 0; i < pGS->Server()->MaxClients(); i++)
 	{
-		if(i == ClientID || !pSelf->m_apPlayers[i] || str_comp(pSelf->m_apPlayers[i]->m_aTimeoutCode, pTimeout))
+		if(i == ClientID || !pGS->m_apPlayers[i] || str_comp(pGS->m_apPlayers[i]->m_aTimeoutCode, pTimeout))
 			continue;
 
-		if(pSelf->Server()->SetTimedOut(i, ClientID))
+		if(pGS->Server()->SetTimedOut(i, ClientID))
 		{
-			if(pSelf->m_apPlayers[i]->GetCharacter())
-				pSelf->SendTuningParams(i);
+			if(pGS->m_apPlayers[i]->GetCharacter())
+				pGS->SendTuningParams(i);
 			return;
 		}
 	}
 
-	pSelf->Server()->SetTimeoutProtected(pResult->m_ClientID);
+	pGS->Server()->SetTimeoutProtected(pResult->m_ClientID);
 	str_copy(pPlayer->m_aTimeoutCode, pResult->GetString(0), sizeof(pPlayer->m_aTimeoutCode));
 }
 
 void CCommandsChatProcessor::ConMe(IConsole::IResult *pResult, void *pUserData)
 {
-	CGameContext *pSelf = static_cast<CGameContext *>(pUserData);
 	const int ClientID = pResult->m_ClientID;
-	if(!pSelf->GetPlayer(ClientID))
+	IServer *pServer = (IServer *)pUserData;
+	CGameContext *pGS = (CGameContext *)pServer->GameServer(pServer->GetClientWorldID(ClientID));
+
+	if(!pGS->GetPlayer(ClientID))
 		return;
 
 	if(!g_Config.m_SvSlashMe)
 	{
-		pSelf->Chat(ClientID, "/me is disabled on this server");
+		pGS->Chat(ClientID, "/me is disabled on this server");
 		return;
 	}
 
-	pSelf->Chat(-1, "### {STR} {STR}", pSelf->Server()->ClientName(ClientID), pResult->GetString(0));
+	pGS->Chat(-1, "### {STR} {STR}", pGS->Server()->ClientName(ClientID), pResult->GetString(0));
 }
 
 void CCommandsChatProcessor::ConConverse(IConsole::IResult *pResult, void *pUserData)
@@ -150,32 +164,32 @@ void CCommandsChatProcessor::ConWhisper(IConsole::IResult *pResult, void *pUserD
 	// This will never be called
 }
 
-void CCommandsChatProcessor::Execute(CNetMsg_Cl_Say *pMsg, CPlayer *pPlayer)
+void CCommandsChatProcessor::Execute(CNetMsg_Cl_Say *pMsg, CGameContext *pGS, CPlayer *pPlayer)
 {
 	const int ClientID = pPlayer->GetCID();
 	if(str_comp_nocase_num(pMsg->m_pMessage + 1, "w ", 2) == 0)
 	{
 		char aWhisperMsg[256];
 		str_copy(aWhisperMsg, pMsg->m_pMessage + 3, 256);
-		GS()->Whisper(pPlayer->GetCID(), aWhisperMsg);
+		pGS->Whisper(pPlayer->GetCID(), aWhisperMsg);
 	}
 	else if(str_comp_nocase_num(pMsg->m_pMessage + 1, "whisper ", 8) == 0)
 	{
 		char aWhisperMsg[256];
 		str_copy(aWhisperMsg, pMsg->m_pMessage + 9, 256);
-		GS()->Whisper(pPlayer->GetCID(), aWhisperMsg);
+		pGS->Whisper(pPlayer->GetCID(), aWhisperMsg);
 	}
 	else if(str_comp_nocase_num(pMsg->m_pMessage + 1, "c ", 2) == 0)
 	{
 		char aWhisperMsg[256];
 		str_copy(aWhisperMsg, pMsg->m_pMessage + 3, 256);
-		GS()->Converse(pPlayer->GetCID(), aWhisperMsg);
+		pGS->Converse(pPlayer->GetCID(), aWhisperMsg);
 	}
 	else if(str_comp_nocase_num(pMsg->m_pMessage + 1, "converse ", 9) == 0)
 	{
 		char aWhisperMsg[256];
 		str_copy(aWhisperMsg, pMsg->m_pMessage + 10, 256);
-		GS()->Converse(pPlayer->GetCID(), aWhisperMsg);
+		pGS->Converse(pPlayer->GetCID(), aWhisperMsg);
 	}
 	else
 	{
@@ -188,7 +202,7 @@ void CCommandsChatProcessor::Execute(CNetMsg_Cl_Say *pMsg, CPlayer *pPlayer)
 
 		char aBuf[256];
 		str_format(aBuf, sizeof(aBuf), "%d used %s", ClientID, pMsg->m_pMessage);
-		GS()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "chat-command", aBuf);
+		pGS->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "chat-command", aBuf);
 
 		int PositionChar = 0;
 		char aBufCommand[256] = {0};
@@ -203,12 +217,12 @@ void CCommandsChatProcessor::Execute(CNetMsg_Cl_Say *pMsg, CPlayer *pPlayer)
 			break;
 		}
 
-		if(!GS()->Console()->IsCommand(aBufCommand, CFGFLAG_CHAT))
+		if(!pGS->Console()->IsCommand(aBufCommand, CFGFLAG_CHAT))
 		{
-			GS()->Chat(ClientID, "Command \"/{STR}\" not found!", aBufCommand);
+			pGS->Chat(ClientID, "Command \"/{STR}\" not found!", aBufCommand);
 			return;
 		}
 
-		GS()->Console()->ExecuteLineFlag(pMsg->m_pMessage + 1, CFGFLAG_CHAT, ClientID, false);
+		pGS->Console()->ExecuteLineFlag(pMsg->m_pMessage + 1, CFGFLAG_CHAT, ClientID, false);
 	}
 }

@@ -202,6 +202,9 @@ public:
 
 	bool m_NotEligibleForFinish;
 	int64_t m_EligibleForFinishCheck;
+
+		
+	int GetPlayerWorldID() const;
 };
 
 #endif
