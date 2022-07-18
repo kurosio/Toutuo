@@ -242,17 +242,11 @@ public:
 	int m_PrintCBIndex;
 	char m_aShutdownReason[128];
 
-	enum
-	{
-		MAP_TYPE_SIX = 0,
-		NUM_MAP_TYPES
-	};
-
 	char m_aCurrentMap[IO_MAX_PATH_LENGTH];
-	SHA256_DIGEST m_aCurrentMapSha256[NUM_MAP_TYPES];
-	unsigned m_aCurrentMapCrc[NUM_MAP_TYPES];
-	unsigned char *m_apCurrentMapData[NUM_MAP_TYPES];
-	unsigned int m_aCurrentMapSize[NUM_MAP_TYPES];
+	SHA256_DIGEST m_CurrentMapSha256;
+	unsigned m_CurrentMapCrc;
+	unsigned char *m_pCurrentMapData;
+	unsigned int m_CurrentMapSize;
 
 	CDemoRecorder m_aDemoRecorder[MAX_CLIENTS + 1];
 	CAuthManager m_AuthManager;
