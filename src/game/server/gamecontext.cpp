@@ -794,16 +794,12 @@ void CGameContext::OnPreTickTeehistorian()
 
 void CGameContext::OnTick()
 {
-	auto pRes = Sqlpool.Execute<TypeDB::Select>("*", "tw_items_list").GetResult();
-	if(pRes->next())
-		dbg_msg("sss", "sssss");
-
-	Sqlpool.Execute<TypeDB::Select>("*", "tw_items_list").AtCompletion([](IServer *pServer, ResultPtr pRes) 
+	Sqlpool.Execute<TypeDB::Select>("*", "tw_items_list").AtCompletion([](IServer *, ResultPtr) 
 	{
 		
 	});
 	auto Item = Sqlpool.Execute<TypeDB::Update>("tw_items_list", "Name = 'Gold' WHERE ItemID = '1'");
-	Item.AtCompletion([](IServer *pServer) 
+	Item.AtCompletion([](IServer *) 
 	{
 		dbg_msg("done", "update done");
 	});
