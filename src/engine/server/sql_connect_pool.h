@@ -152,11 +152,12 @@ private:
 			return *this;
 		}
 
-		void AtExecution(void (*pCallback)(IServer *) = nullptr)
+		void AtExecution(void (*pCallback)(IServer *) = nullptr, int DelayMilliseconds = 0)
 		{
-			auto Item = [pCallback](const std::string Query) {
-				//if(Milliseconds > 0)
-				//	std::this_thread::sleep_for(std::chrono::milliseconds(Milliseconds));
+			auto Item = [pCallback](const std::string Query, const int Milliseconds)
+			{
+				if(Milliseconds > 0)
+					std::this_thread::sleep_for(std::chrono::milliseconds(Milliseconds));
 
 				const char *pError = nullptr;
 
@@ -182,9 +183,9 @@ private:
 				if(pError != nullptr)
 					dbg_msg("SQL", "%s", pError);
 			};
-			std::thread(Item, m_Query).detach();
+			std::thread(Item, m_Query, DelayMilliseconds).detach();
 		}
-		void Execute() { return AtExecution(nullptr); }
+		void Execute(int DelayMilliseconds = 0) { return AtExecution(nullptr, DelayMilliseconds); }
 	};
 
 	class CResultQueryCustom : public CResultQuery
