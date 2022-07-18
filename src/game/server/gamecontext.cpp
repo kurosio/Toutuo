@@ -794,16 +794,16 @@ void CGameContext::OnPreTickTeehistorian()
 
 void CGameContext::OnTick()
 {
-	Sqlpool.Execute<TypeDB::Select>("*", "tw_items_list").AtCompletion([](IServer *, ResultPtr) 
+	Sqlpool.Prepare<TypeDB::Select>("*", "tw_items_list").AtExecution([](IServer *, ResultPtr) 
 	{
 		
 	});
-	auto Item = Sqlpool.Execute<TypeDB::Update>("tw_items_list", "Name = 'Gold' WHERE ItemID = '1'");
-	Item.AtCompletion([](IServer *) 
+	auto Item = Sqlpool.Prepare<TypeDB::Update>("tw_items_list", "Name = 'Gold' WHERE ItemID = '1'");
+	Item.AtExecution([](IServer *) 
 	{
 		dbg_msg("done", "update done");
 	});
-	Item.Do();
+	Item.Execute();
 
 
 	// check tuning

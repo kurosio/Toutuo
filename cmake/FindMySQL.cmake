@@ -41,7 +41,7 @@ endif()
 
 set_extra_dirs_lib(MYSQL mysql)
 find_library(MYSQL_LIBRARY
-  NAMES "mysqlclient" "mysqlclient_r" "mariadbclient"
+  NAMES "mysqlcppconn" "mysqlcppconn-static"
   HINTS ${MYSQL_CONFIG_LIBRARY_PATH}
   ${CROSSCOMPILING_NO_CMAKE_SYSTEM_PATH}
 )
@@ -58,12 +58,6 @@ set(Boost_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/libraries/boost/include")
 
 if(NOT(MYSQL_FOUND))
   find_library(MYSQL_LIBRARY
-    NAMES "mysqlclient" "mysqlclient_r" "mariadbclient"
-    HINTS ${HINTS_MYSQL_LIBDIR} ${MYSQL_CONFIG_LIBRARY_PATH}
-    PATHS ${PATHS_MYSQL_LIBDIR}
-    ${CROSSCOMPILING_NO_CMAKE_SYSTEM_PATH}
-  )
-  find_library(MYSQL_CPPCONN_LIBRARY
     NAMES "mysqlcppconn" "mysqlcppconn-static"
     HINTS ${HINTS_MYSQL_LIBDIR} ${MYSQL_CONFIG_LIBRARY_PATH}
     PATHS ${PATHS_MYSQL_LIBDIR}
@@ -88,7 +82,7 @@ if(NOT(MYSQL_FOUND))
   endif()
 endif()
 
-set(MYSQL_LIBRARIES ${MYSQL_LIBRARY} ${MYSQL_CPPCONN_LIBRARY})
+set(MYSQL_LIBRARIES ${MYSQL_LIBRARY})
 set(MYSQL_INCLUDE_DIRS ${MYSQL_INCLUDEDIR} ${Boost_INCLUDE_DIRS})
 
 mark_as_advanced(MYSQL_INCLUDEDIR MYSQL_LIBRARY)

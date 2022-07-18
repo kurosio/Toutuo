@@ -86,7 +86,7 @@ private:
 			return pResult;
 		}
 
-		void AtCompletion(void (*pCallback)(IServer *, ResultPtr) = nullptr)
+		void AtExecution(void (*pCallback)(IServer *, ResultPtr) = nullptr)
 		{
 			auto Item = [pCallback](const std::string Query)
 			{
@@ -121,7 +121,7 @@ private:
 	class CResultQuery : public CResultBase
 	{
 	public:
-		void AtCompletion(void (*pCallback)(IServer *) = nullptr)
+		void AtExecution(void (*pCallback)(IServer *) = nullptr)
 		{
 			auto Item = [pCallback](const std::string Query) {
 				//if(Milliseconds > 0)
@@ -153,7 +153,7 @@ private:
 			};
 			std::thread(Item, m_Query).detach();
 		}
-		void Do() { return AtCompletion(nullptr); }
+		void Execute() { return AtExecution(nullptr); }
 	};
 
 	static void vaformatsql(const char *pBuffer, char *pBuf, size_t Size, va_list VarArgs)
@@ -168,7 +168,7 @@ private:
 
 public:
 	template<TypeDB T>
-	static std::enable_if_t<T == TypeDB::Select, CResultSelect> Execute(const char *pSelect, const char *pTable, const char *pBuffer = "\0", ...)
+	static std::enable_if_t<T == TypeDB::Select, CResultSelect> Prepare(const char *pSelect, const char *pTable, const char *pBuffer = "\0", ...)
 	{
 		char aBuf[1024];
 		va_list VarArgs;
@@ -182,7 +182,7 @@ public:
 	}
 
 	template<TypeDB T>
-	static std::enable_if_t<T != TypeDB::Select, CResultQuery> Execute(const char *pTable, const char *pBuffer, ...)
+	static std::enable_if_t<T != TypeDB::Select, CResultQuery> Prepare(const char *pTable, const char *pBuffer, ...)
 	{
 		char aBuf[1024];
 		va_list VarArgs;
