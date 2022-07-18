@@ -797,7 +797,7 @@ void CGameContext::OnTick()
 	// thread callback selected
 	Sqlpool.Prepare<TypeDB::Select>("*", "tw_items_list").AtExecution([](IServer *, ResultPtr pRes) 
 	{
-		dbg_msg("test", "results tw_items_list %d", pRes->rowsCount());
+		dbg_msg("test", "results tw_items_list %d", (int)pRes->rowsCount());
 	});
 
 	// other tests

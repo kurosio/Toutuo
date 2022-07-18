@@ -52,6 +52,7 @@ private:
 	protected:
 		friend class CConectionPool;
 		std::string m_Query;
+		TypeDB m_TypeQuery;
 	public:
 		const char *GetQuery() const { return m_Query.c_str(); }
 	};
@@ -59,6 +60,18 @@ private:
 	class CResultSelect : public CResultBase
 	{
 	public:
+		CResultSelect &UpdateQuery(const char *pSelect, const char *pTable, const char *pBuffer = "\0", ...)
+		{
+			char aBuf[1024];
+			va_list VarArgs;
+			va_start(VarArgs, pBuffer);
+			vaformatsql(pBuffer, aBuf, sizeof(aBuf), VarArgs);
+			va_end(VarArgs);
+
+			m_Query = std::string("SELECT " + std::string(pSelect) + " FROM " + std::string(pTable) + " " + std::string(aBuf) + ";");
+			return *this;
+		}
+
 		[[nodiscard]] ResultPtr GetResult() const
 		{
 			const char *pError = nullptr;
@@ -122,6 +135,23 @@ private:
 	class CResultQuery : public CResultBase
 	{
 	public:
+		CResultQuery &UpdateQuery(const char* pTable, const char *pBuffer, ...)
+		{
+			char aBuf[1024];
+			va_list VarArgs;
+			va_start(VarArgs, pBuffer);
+			vaformatsql(pBuffer, aBuf, sizeof(aBuf), VarArgs);
+			va_end(VarArgs);
+
+			if (m_TypeQuery == TypeDB::Insert)
+				m_Query = std::string("INSERT INTO " + std::string(pTable) + " " + std::string(aBuf) + ";");
+			else if(m_TypeQuery == TypeDB::Update)
+				m_Query = std::string("UPDATE " + std::string(pTable) + " SET " + std::string(aBuf) + ";");
+			else if(m_TypeQuery == TypeDB::Delete)
+				m_Query = std::string("DELETE FROM " + std::string(pTable) + " " + std::string(aBuf) + ";");
+			return *this;
+		}
+
 		void AtExecution(void (*pCallback)(IServer *) = nullptr)
 		{
 			auto Item = [pCallback](const std::string Query) {
@@ -196,6 +226,7 @@ public:
 
 		CResultSelect Data;
 		Data.m_Query = std::string("SELECT " + std::string(pSelect) + " FROM " + std::string(pTable) + " " + std::string(aBuf) + ";");
+		Data.m_TypeQuery = T;
 		return Data;
 	}
 
@@ -210,6 +241,7 @@ public:
 
 		CResultQueryCustom Data;
 		Data.m_Query = std::string(std::string(aBuf) + ";");
+		Data.m_TypeQuery = T;
 		return Data;
 	}
 
@@ -229,6 +261,7 @@ public:
 			Data.m_Query = std::string("UPDATE " + std::string(pTable) + " SET " + std::string(aBuf) + ";");
 		else if constexpr(T == TypeDB::Delete)
 			Data.m_Query = std::string("DELETE FROM " + std::string(pTable) + " " + std::string(aBuf) + ";");
+		Data.m_TypeQuery = T;
 		return Data;
 	}
 
