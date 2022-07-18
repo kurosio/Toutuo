@@ -85,7 +85,7 @@ class CServerBan : public CNetBan
 	int BanExt(T *pBanPool, const typename T::CDataType *pData, int Seconds, const char *pReason);
 
 public:
-	class CServer *Server() const { return m_pServer; }
+	CServer *Server() const { return m_pServer; }
 
 	void InitServerBan(class IConsole *pConsole, class IStorage *pStorage, class CServer *pServer);
 
@@ -199,7 +199,6 @@ public:
 		void Reset();
 
 		// DDRace
-
 		NETADDR m_Addr;
 		bool m_GotDDNetVersionPacket;
 		bool m_DDNetVersionSettled;
@@ -402,10 +401,6 @@ public:
 	static void ConNameBan(IConsole::IResult *pResult, void *pUser);
 	static void ConNameUnban(IConsole::IResult *pResult, void *pUser);
 	static void ConNameBans(IConsole::IResult *pResult, void *pUser);
-
-	// console commands for sqlmasters
-	static void ConAddSqlServer(IConsole::IResult *pResult, void *pUserData);
-	static void ConDumpSqlServers(IConsole::IResult *pResult, void *pUserData);
 
 	static void ConchainLoglevel(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void ConchainSpecialInfoupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);

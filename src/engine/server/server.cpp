@@ -3163,73 +3163,6 @@ void CServer::ConShowIps(IConsole::IResult *pResult, void *pUser)
 	}
 }
 
-void CServer::ConAddSqlServer(IConsole::IResult *pResult, void *pUserData)
-{
-	CServer *pSelf = (CServer *)pUserData;
-
-	if(!pSelf->Config()->m_SvUseSQL)
-		return;
-
-	if(pResult->NumArguments() != 7 && pResult->NumArguments() != 8)
-	{
-		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", "7 or 8 arguments are required");
-		return;
-	}
-
-	bool ReadOnly;
-	if(str_comp_nocase(pResult->GetString(0), "w") == 0)
-		ReadOnly = false;
-	else if(str_comp_nocase(pResult->GetString(0), "r") == 0)
-		ReadOnly = true;
-	else
-	{
-		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", "choose either 'r' for SqlReadServer or 'w' for SqlWriteServer");
-		return;
-	}
-
-	bool SetUpDb = pResult->NumArguments() == 8 ? pResult->GetInteger(7) : true;
-
-	auto pMysqlConn = CreateMysqlConnection(
-		pResult->GetString(1), pResult->GetString(2), pResult->GetString(3),
-		pResult->GetString(4), pResult->GetString(5), pResult->GetInteger(6),
-		SetUpDb);
-
-	if(!pMysqlConn)
-	{
-		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", "can't add MySQL server: compiled without MySQL support");
-		return;
-	}
-
-	char aBuf[512];
-	str_format(aBuf, sizeof(aBuf),
-		"Added new Sql%sServer: DB: '%s' Prefix: '%s' User: '%s' IP: <{%s}> Port: %d",
-		ReadOnly ? "Read" : "Write",
-		pResult->GetString(1), pResult->GetString(2), pResult->GetString(3),
-		pResult->GetString(5), pResult->GetInteger(6));
-	pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
-	pSelf->DbPool()->RegisterDatabase(std::move(pMysqlConn), ReadOnly ? CDbConnectionPool::READ : CDbConnectionPool::WRITE);
-}
-
-void CServer::ConDumpSqlServers(IConsole::IResult *pResult, void *pUserData)
-{
-	CServer *pSelf = (CServer *)pUserData;
-
-	if(str_comp_nocase(pResult->GetString(0), "w") == 0)
-	{
-		pSelf->DbPool()->Print(pSelf->Console(), CDbConnectionPool::WRITE);
-		pSelf->DbPool()->Print(pSelf->Console(), CDbConnectionPool::WRITE_BACKUP);
-	}
-	else if(str_comp_nocase(pResult->GetString(0), "r") == 0)
-	{
-		pSelf->DbPool()->Print(pSelf->Console(), CDbConnectionPool::READ);
-	}
-	else
-	{
-		pSelf->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", "choose either 'r' for SqlReadServer or 'w' for SqlWriteServer");
-		return;
-	}
-}
-
 void CServer::ConchainLoglevel(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
 {
 	pfnCallback(pResult, pCallbackUserData);
@@ -3433,9 +3366,6 @@ void CServer::RegisterCommands()
 	Console()->Register("stoprecord", "", CFGFLAG_SERVER, ConStopRecord, this, "Stop recording");
 
 	Console()->Register("reload", "", CFGFLAG_SERVER, ConMapReload, this, "Reload the map");
-
-	Console()->Register("add_sqlserver", "s['r'|'w'] s[Database] s[Prefix] s[User] s[Password] s[IP] i[Port] ?i[SetUpDatabase ?]", CFGFLAG_SERVER | CFGFLAG_NONTEEHISTORIC, ConAddSqlServer, this, "add a sqlserver");
-	Console()->Register("dump_sqlservers", "s['r'|'w']", CFGFLAG_SERVER, ConDumpSqlServers, this, "dumps all sqlservers readservers = r, writeservers = w");
 
 	Console()->Register("auth_add", "s[ident] s[level] r[pw]", CFGFLAG_SERVER | CFGFLAG_NONTEEHISTORIC, ConAuthAdd, this, "Add a rcon key");
 	Console()->Register("auth_add_p", "s[ident] s[level] s[hash] s[salt]", CFGFLAG_SERVER | CFGFLAG_NONTEEHISTORIC, ConAuthAddHashed, this, "Add a prehashed rcon key");

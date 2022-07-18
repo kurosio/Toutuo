@@ -47,7 +47,7 @@ find_library(MYSQL_LIBRARY
 )
 set_extra_dirs_include(MYSQL mysql "${MYSQL_LIBRARY}")
 find_path(MYSQL_INCLUDEDIR
-  NAMES "mysql.h"
+  NAMES "mysql_connection.h"
   HINTS ${MYSQL_CONFIG_INCLUDE_DIR}
   ${CROSSCOMPILING_NO_CMAKE_SYSTEM_PATH}
 )
@@ -65,7 +65,7 @@ if(NOT(MYSQL_FOUND))
   )
   set_extra_dirs_include(MYSQL mysql "${MYSQL_LIBRARY}")
   find_path(MYSQL_INCLUDEDIR
-    NAMES "mysql.h"
+    NAMES "mysql_connection.h"
     HINTS ${HINTS_MYSQL_INCLUDEDIR} ${MYSQL_CONFIG_INCLUDE_DIR}
     PATHS ${PATHS_MYSQL_INCLUDEDIR}
     ${CROSSCOMPILING_NO_CMAKE_SYSTEM_PATH}

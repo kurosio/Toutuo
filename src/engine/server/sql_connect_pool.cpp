@@ -57,9 +57,9 @@ CConectionPool::~CConectionPool()
 
 CConectionPool& CConectionPool::GetInstance()
 {
-	if (m_Instance.get() == nullptr)
+	if (m_Instance == nullptr)
 		m_Instance.reset(new CConectionPool());
-	return *m_Instance.get();
+	return *m_Instance;
 }
 
 Connection* CConectionPool::CreateConnection()
