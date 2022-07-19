@@ -197,8 +197,6 @@ public:
 	vec2 m_Intersection;
 	int64_t m_LastStartWarning;
 	bool m_LastRefillJumps;
-	bool m_LastPenalty;
-	bool m_LastBonus;
 	vec2 m_TeleGunPos;
 	bool m_TeleGunTeleport;
 	bool m_IsBlueTeleGunTeleport;

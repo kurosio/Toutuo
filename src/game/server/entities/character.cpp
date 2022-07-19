@@ -49,8 +49,6 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	m_LastWeapon = WEAPON_HAMMER;
 	m_QueuedWeapon = -1;
 	m_LastRefillJumps = false;
-	m_LastPenalty = false;
-	m_LastBonus = false;
 
 	m_TeleGunTeleport = false;
 	m_IsBlueTeleGunTeleport = false;
@@ -1119,8 +1117,6 @@ void CCharacter::HandleTiles(int Index)
 	if(Index < 0)
 	{
 		m_LastRefillJumps = false;
-		m_LastPenalty = false;
-		m_LastBonus = false;
 		return;
 	}
 

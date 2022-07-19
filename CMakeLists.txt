@@ -2125,7 +2125,6 @@ if(GTEST_FOUND OR DOWNLOAD_GTEST)
     serverinfo.cpp
     str.cpp
     strip_path_and_extension.cpp
-    teehistorian.cpp
     test.cpp
     test.h
     thread.cpp
