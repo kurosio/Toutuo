@@ -698,22 +698,22 @@ void CCharacter::TickDefered()
 	}
 
 	{
-		int Events = m_Core.m_TriggeredEvents;
-		int CID = m_pPlayer->GetCID();
+		const int Events = m_Core.m_TriggeredEvents;
+		const int ClientID = m_pPlayer->GetCID();
 
 		// Some sounds are triggered client-side for the acting player
 		// so we need to avoid duplicating them
-		if(Events & COREEVENT_GROUND_JUMP)
-			GameServer()->CreateSound(m_Pos, SOUND_PLAYER_JUMP, CmaskAllExceptOne(CID));
-
 		if(Events & COREEVENT_HOOK_ATTACH_PLAYER)
-			GameServer()->CreateSound(m_Pos, SOUND_HOOK_ATTACH_PLAYER, CmaskAllExceptOne(CID));
+			GameServer()->CreateSound(m_Pos, SOUND_HOOK_ATTACH_PLAYER);
+
+		if(Events & COREEVENT_GROUND_JUMP)
+			GameServer()->CreateSound(m_Pos, SOUND_PLAYER_JUMP, CmaskAllExceptOne(ClientID));
 
 		if(Events & COREEVENT_HOOK_ATTACH_GROUND)
-			GameServer()->CreateSound(m_Pos, SOUND_HOOK_ATTACH_GROUND, CmaskAllExceptOne(CID));
+			GameServer()->CreateSound(m_Pos, SOUND_HOOK_ATTACH_GROUND, CmaskAllExceptOne(ClientID));
 
 		if(Events & COREEVENT_HOOK_HIT_NOHOOK)
-			GameServer()->CreateSound(m_Pos, SOUND_HOOK_NOATTACH, CmaskAllExceptOne(CID));
+			GameServer()->CreateSound(m_Pos, SOUND_HOOK_NOATTACH, CmaskAllExceptOne(ClientID));
 	}
 
 	if(m_pPlayer->GetTeam() == TEAM_SPECTATORS)

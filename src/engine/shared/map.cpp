@@ -1,9 +1,12 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include "map.h"
+
 #include <engine/storage.h>
 
-CMap::CMap() : m_CurrentMapSize(0), m_pCurrentMapData(0x0) {}
+#include <cstdlib>
+
+CMap::CMap() : m_pCurrentMapData(0x0), m_CurrentMapSize(0) {}
 CMap::~CMap()
 {
 	free(m_pCurrentMapData);

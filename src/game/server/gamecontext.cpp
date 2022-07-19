@@ -1171,14 +1171,11 @@ void CGameContext::OnClientConnected(int ClientID)
 		m_NonEmptySince = Server()->Tick();
 	}
 
-	// Check which team the player should be on
-	const int StartTeam = m_pController->GetAutoTeam(ClientID);
-
 	if(m_apPlayers[ClientID])
 		delete m_apPlayers[ClientID];
 
 	const int AllocMemoryCell = ClientID + m_WorldID * MAX_CLIENTS;
-	m_apPlayers[ClientID] = new(AllocMemoryCell) CPlayer(this, NextUniqueClientID, ClientID, StartTeam);
+	m_apPlayers[ClientID] = new(AllocMemoryCell) CPlayer(this, NextUniqueClientID, ClientID, TEAM_RED);
 	NextUniqueClientID += 1;
 
 #ifdef CONF_DEBUG
@@ -1587,24 +1584,6 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			if(pPlayer->GetTeam() == pMsg->m_Team || (g_Config.m_SvSpamprotection && pPlayer->m_LastSetTeam && pPlayer->m_LastSetTeam + Server()->TickSpeed() * g_Config.m_SvTeamChangeDelay > Server()->Tick()))
 				return;
 
-			// Switch team on given client and kill/respawn them
-			if(m_pController->CanJoinTeam(pMsg->m_Team, ClientID))
-			{
-				if(pPlayer->IsPaused())
-					Chat(ClientID, "Use /pause first then you can kill");
-				else
-				{
-					if(pPlayer->GetTeam() == TEAM_SPECTATORS || pMsg->m_Team == TEAM_SPECTATORS)
-						m_VoteUpdate = true;
-					m_pController->DoTeamChange(pPlayer, pMsg->m_Team);
-				}
-			}
-			else
-			{
-				char aBuf[128];
-				str_format(aBuf, sizeof(aBuf), "Only %d active players are allowed", Server()->MaxClients() - g_Config.m_SvSpectatorSlots);
-				Broadcast(ClientID, GamePriority::GLOBAL, 100, aBuf);
-			}
 		}
 		else if(MsgID == NETMSGTYPE_CL_ISDDNETLEGACY)
 		{

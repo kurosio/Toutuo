@@ -49,14 +49,8 @@ protected:
 
 	int m_RoundStartTick;
 	int m_GameOverTick;
-	int m_SuddenDeath;
-
-	int m_Warmup;
-	int m_RoundCount;
 
 	int m_GameFlags;
-	int m_UnbalancedTick;
-	bool m_ForceBalanced;
 
 public:
 	const char *m_pGameType;
@@ -107,22 +101,15 @@ public:
 	void OnReset();
 
 	// game
-	void DoWarmup(int Seconds);
-
 	void StartRound();
 	void EndRound();
 
 	bool IsFriendlyFire(int ClientID1, int ClientID2);
 
-	bool IsForceBalanced();
-
 	/*
 
 	*/
-	virtual bool CanBeMovedOnBalance(int ClientID);
-
 	virtual void Tick();
-
 	virtual void Snap(int SnappingClient);
 
 	//spawn
@@ -133,8 +120,6 @@ public:
 
 	*/
 	virtual const char *GetTeamName(int Team);
-	virtual int GetAutoTeam(int NotThisID);
-	virtual bool CanJoinTeam(int Team, int NotThisID);
 	int ClampTeam(int Team);
 
 	virtual int64_t GetMaskForPlayerWorldEvent(int Asker, int ExceptID = -1);
