@@ -98,7 +98,10 @@ void CMultiWorlds::Clear(bool Shutdown)
 				m_Worlds[i].m_pLoadedMap = nullptr;
 			}
 		}
-		
+
+		free(m_Worlds[i].m_pLoadedMapData);
+		m_Worlds[i].m_pLoadedMapData = nullptr;
+
 		delete m_Worlds[i].m_pGameServer;
 		m_Worlds[i].m_pGameServer = nullptr;
 	}

@@ -15,6 +15,7 @@ public:
 		char m_aPath[512];
 		class IGameServer* m_pGameServer;
 		class IEngineMap* m_pLoadedMap;
+		unsigned char *m_pLoadedMapData;
 	};
 
 	CMultiWorlds()

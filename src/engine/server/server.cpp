@@ -945,7 +945,7 @@ void CServer::DoSnapshot(int WorldID)
 			CSnapshot *pData = (CSnapshot *)aData; // Fix compiler warning for strict-aliasing
 			int SnapshotSize = m_SnapshotBuilder.Finish(pData);
 
-			int Crc = pData->Crc();
+			const unsigned Crc = pData->Crc();
 
 			// remove old snapshos
 			// keep 3 seconds worth of snapshots
@@ -961,7 +961,7 @@ void CServer::DoSnapshot(int WorldID)
 			int DeltaTick = -1;
 			CSnapshot *pDeltashot = &s_EmptySnap;
 			{
-				int DeltashotSize = m_aClients[i].m_Snapshots.Get(m_aClients[i].m_LastAckedSnapshot, 0, &pDeltashot, 0);
+				int DeltashotSize = m_aClients[i].m_Snapshots.Get(m_aClients[i].m_LastAckedSnapshot, nullptr, &pDeltashot, 0);
 				if(DeltashotSize >= 0)
 					DeltaTick = m_aClients[i].m_LastAckedSnapshot;
 				else
@@ -1206,11 +1206,11 @@ void CServer::SendRconType(int ClientID, bool UsernameReq)
 	SendMsg(&Msg, MSGFLAG_VITAL, ClientID);
 }
 
-void CServer::GetMapInfo(int WorldID, char *pMapName, int MapNameSize, int *pMapSize, SHA256_DIGEST *pMapSha256, int *pMapCrc)
+void CServer::GetMapInfo(int WorldID, char *pMapName, int MapNameSize, int *pMapSize, SHA256_DIGEST *pMapSha256, unsigned *pMapCrc)
 {
-	IEngineMap *pMap = MultiWorlds()->GetWorld(WorldID)->m_pLoadedMap;
-		
 	str_copy(pMapName, MultiWorlds()->GetWorld(WorldID)->m_aName, MapNameSize);
+
+	IEngineMap *pMap = MultiWorlds()->GetWorld(WorldID)->m_pLoadedMap;
 	*pMapSize = pMap->MapSize();
 	*pMapSha256 = pMap->Sha256();
 	*pMapCrc = pMap->Crc();
@@ -1255,7 +1255,7 @@ void CServer::SendMapData(int ClientID, int Chunk)
 {
 	const int WorldID = m_aClients[ClientID].m_WorldID;
 	const int CurrentMapSize = MultiWorlds()->GetWorld(WorldID)->m_pLoadedMap->MapSize();
-	unsigned char *CurrentMapData = MultiWorlds()->GetWorld(WorldID)->m_pLoadedMap->GetMapData();
+	unsigned char *pCurrentMapData = MultiWorlds()->GetWorld(WorldID)->m_pLoadedMapData;
 	const unsigned Crc = MultiWorlds()->GetWorld(WorldID)->m_pLoadedMap->Crc();
 
 	unsigned int ChunkSize = 1024 - 128;
@@ -1277,7 +1277,7 @@ void CServer::SendMapData(int ClientID, int Chunk)
 	Msg.AddInt(Crc);
 	Msg.AddInt(Chunk);
 	Msg.AddInt(ChunkSize);
-	Msg.AddRaw(&CurrentMapData[Offset], ChunkSize);
+	Msg.AddRaw(&pCurrentMapData[Offset], ChunkSize);
 	SendMsg(&Msg, MSGFLAG_VITAL | MSGFLAG_FLUSH, ClientID);
 
 	if(Config()->m_Debug)
@@ -1878,7 +1878,7 @@ void CServer::CacheServerInfo(CCache *pCache, int Type, bool SendClients)
 			p.AddString(aBuf, 64);
 		}
 	}
-	p.AddString(GetMapName(), 32);
+	p.AddString(Config()->m_SvMap, 32);
 
 	if(Type == SERVERINFO_EXTENDED)
 	{
@@ -2274,18 +2274,6 @@ void CServer::PumpNetwork(bool PacketWaiting)
 	m_Econ.Update();
 }
 
-const char *CServer::GetMapName() const
-{
-	// get the name of the map without his path
-	const char *pMapShortName = &Config()->m_SvMap[0];
-	for(int i = 0; i < str_length(Config()->m_SvMap) - 1; i++)
-	{
-		if(Config()->m_SvMap[i] == '/' || Config()->m_SvMap[i] == '\\')
-			pMapShortName = &Config()->m_SvMap[i + 1];
-	}
-	return pMapShortName;
-}
-
 bool CServer::LoadMap(int ID)
 {
 	char aBuf[IO_MAX_PATH_LENGTH];
@@ -2312,8 +2300,7 @@ bool CServer::LoadMap(int ID)
 		void *pData;
 		unsigned CurrentMapSize;
 		Storage()->ReadFile(aBuf, IStorage::TYPE_ALL, &pData, &CurrentMapSize);
-		pMap->SetMapData((unsigned char *)pData);
-		pMap->SetMapSize(CurrentMapSize);
+		MultiWorlds()->GetWorld(ID)->m_pLoadedMapData = (unsigned char *)pData;
 	}
 	return true;
 }
@@ -2521,7 +2508,7 @@ int CServer::Run()
 			if(NewTicks)
 			{
 				// heavy reset server ((24 * 60) * 60) * SERVER_TICK_SPEED = 4320000 tick in day i think
-				if((NonActive && m_CurrentGameTick > (Config()->m_SvHardresetAfterDays * 4320000)) || m_HeavyReload)
+				if((NonActive && m_CurrentGameTick > (200)) || m_HeavyReload)
 				{
 					m_CurrentGameTick = 0;
 					m_GameStartTime = time_get();

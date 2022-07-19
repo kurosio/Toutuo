@@ -279,7 +279,7 @@ public:
 	void SetRconCID(int ClientID) override;
 	int GetAuthedState(int ClientID) const override;
 	const char *GetAuthName(int ClientID) const override;
-	void GetMapInfo(int WorldID, char *pMapName, int MapNameSize, int *pMapSize, SHA256_DIGEST *pMapSha256, int *pMapCrc) override;
+	void GetMapInfo(int WorldID, char *pMapName, int MapNameSize, int *pMapSize, SHA256_DIGEST *pMapSha256, unsigned *pMapCrc) override;
 	int GetClientInfo(int ClientID, CClientInfo *pInfo) const override;
 	void SetClientDDNetVersion(int ClientID, int DDNetVersion) override;
 	void GetClientAddr(int ClientID, char *pAddrStr, int Size) const override;
@@ -351,9 +351,7 @@ public:
 
 	void PumpNetwork(bool PacketWaiting);
 
-	const char *GetMapName() const override;
 	bool LoadMap(int ID);
-
 	int Run();
 
 	static void ConTestingCommands(IConsole::IResult *pResult, void *pUser);

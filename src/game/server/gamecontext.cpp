@@ -1916,7 +1916,7 @@ void CGameContext::OnInit(int WorldID/*class IKernel *pKernel*/)
 	char aMapName[IO_MAX_PATH_LENGTH];
 	int MapSize;
 	SHA256_DIGEST MapSha256;
-	int MapCrc;
+	unsigned MapCrc;
 	Server()->GetMapInfo(m_WorldID, aMapName, sizeof(aMapName), &MapSize, &MapSha256, &MapCrc);
 
 	// reset everything here

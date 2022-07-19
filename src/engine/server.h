@@ -173,7 +173,7 @@ public:
 		return true;
 	}
 
-	virtual void GetMapInfo(int WorldID, char *pMapName, int MapNameSize, int *pMapSize, SHA256_DIGEST *pSha256, int *pMapCrc) = 0;
+	virtual void GetMapInfo(int WorldID, char *pMapName, int MapNameSize, int *pMapSize, SHA256_DIGEST *pSha256, unsigned *pMapCrc) = 0;
 
 	virtual bool WouldClientNameChange(int ClientID, const char *pNameRequest) = 0;
 	virtual void SetClientName(int ClientID, char const *pName) = 0;
@@ -222,8 +222,6 @@ public:
 	virtual void ExpireServerInfo() = 0;
 
 	virtual void SendMsgRaw(int ClientID, const void *pData, int Size, int Flags) = 0;
-
-	virtual const char *GetMapName() const = 0;
 };
 
 class IGameServer : public IInterface

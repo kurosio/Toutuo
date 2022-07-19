@@ -11,8 +11,6 @@
 class CMap : public IEngineMap
 {
 	CDataFileReader m_DataFile;
-	unsigned char *m_pCurrentMapData;
-	size_t m_CurrentMapSize;
 
 public:
 	CMap();
@@ -41,11 +39,6 @@ public:
 	int MapSize() override;
 
 	IOHANDLE File() override;
-
-	void SetMapData(unsigned char *CurrentMapData) override;
-	unsigned char *GetMapData() override;
-	void SetMapSize(size_t Size) override;
-	size_t GetMapSize() override;
 };
 
 #endif

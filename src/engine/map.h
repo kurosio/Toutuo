@@ -37,11 +37,6 @@ public:
 	virtual unsigned Crc() = 0;
 	virtual int MapSize() = 0;
 	virtual IOHANDLE File() = 0;
-
-	virtual void SetMapSize(size_t Size) = 0;
-	virtual size_t GetMapSize() = 0;
-	virtual void SetMapData(unsigned char* CurrentMapData) = 0;
-	virtual unsigned char* GetMapData() = 0;
 };
 
 extern IEngineMap *CreateEngineMap();
