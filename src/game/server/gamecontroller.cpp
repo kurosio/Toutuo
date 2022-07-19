@@ -411,50 +411,15 @@ void IGameController::Snap(int SnappingClient)
 	pGameInfoObj->m_RoundNum = 0;
 	pGameInfoObj->m_RoundCurrent = m_RoundCount + 1;
 
-	CCharacter *pChr;
 	CPlayer *pPlayer = SnappingClient != SERVER_DEMO_CLIENT ? GameServer()->m_apPlayers[SnappingClient] : 0;
-	CPlayer *pPlayer2;
-
-	if(pPlayer && (pPlayer->m_TimerType == CPlayer::TIMERTYPE_GAMETIMER || pPlayer->m_TimerType == CPlayer::TIMERTYPE_GAMETIMER_AND_BROADCAST) && pPlayer->GetClientVersion() >= VERSION_DDNET_GAMETICK)
-	{
-		if((pPlayer->GetTeam() == TEAM_SPECTATORS || pPlayer->IsPaused()) && pPlayer->m_SpectatorID != SPEC_FREEVIEW && (pPlayer2 = GameServer()->m_apPlayers[pPlayer->m_SpectatorID]))
-		{
-			if((pChr = pPlayer2->GetCharacter()) && pChr->m_DDRaceState == DDRACE_STARTED)
-			{
-				pGameInfoObj->m_WarmupTimer = -pChr->m_StartTime;
-				pGameInfoObj->m_GameStateFlags |= GAMESTATEFLAG_RACETIME;
-			}
-		}
-		else if((pChr = pPlayer->GetCharacter()) && pChr->m_DDRaceState == DDRACE_STARTED)
-		{
-			pGameInfoObj->m_WarmupTimer = -pChr->m_StartTime;
-			pGameInfoObj->m_GameStateFlags |= GAMESTATEFLAG_RACETIME;
-		}
-	}
-
 	CNetObj_GameInfoEx *pGameInfoEx = (CNetObj_GameInfoEx *)Server()->SnapNewItem(NETOBJTYPE_GAMEINFOEX, 0, sizeof(CNetObj_GameInfoEx));
 	if(!pGameInfoEx)
 		return;
 
-	pGameInfoEx->m_Flags =
-		GAMEINFOFLAG_TIMESCORE |
-		GAMEINFOFLAG_GAMETYPE_RACE |
-		GAMEINFOFLAG_GAMETYPE_DDRACE |
-		GAMEINFOFLAG_GAMETYPE_DDNET |
-		GAMEINFOFLAG_UNLIMITED_AMMO |
-		GAMEINFOFLAG_RACE_RECORD_MESSAGE |
-		GAMEINFOFLAG_ALLOW_EYE_WHEEL |
-		GAMEINFOFLAG_ALLOW_HOOK_COLL |
-		GAMEINFOFLAG_ALLOW_ZOOM |
-		GAMEINFOFLAG_BUG_DDRACE_GHOST |
-		GAMEINFOFLAG_BUG_DDRACE_INPUT |
-		GAMEINFOFLAG_PREDICT_DDRACE |
-		GAMEINFOFLAG_PREDICT_DDRACE_TILES |
-		GAMEINFOFLAG_ENTITIES_DDNET |
-		GAMEINFOFLAG_ENTITIES_DDRACE |
-		GAMEINFOFLAG_ENTITIES_RACE |
-		GAMEINFOFLAG_RACE;
-	pGameInfoEx->m_Flags2 = GAMEINFOFLAG2_HUD_DDRACE;
+	pGameInfoEx->m_Flags = GAMEINFOFLAG_GAMETYPE_VANILLA | GAMEINFOFLAG_GAMETYPE_PLUS |
+		GAMEINFOFLAG_ALLOW_EYE_WHEEL |GAMEINFOFLAG_ALLOW_HOOK_COLL | GAMEINFOFLAG_ALLOW_ZOOM |
+		GAMEINFOFLAG_BUG_VANILLA_BOUNCE | GAMEINFOFLAG_PREDICT_VANILLA | GAMEINFOFLAG_ENTITIES_VANILLA;
+	pGameInfoEx->m_Flags2 = GAMEINFOFLAG2_GAMETYPE_CITY | GAMEINFOFLAG2_HUD_HEALTH_ARMOR | GAMEINFOFLAG2_HUD_AMMO;
 	pGameInfoEx->m_Version = GAMEINFO_CURVERSION;
 
 	if(!GameServer()->Switchers().empty())
@@ -471,7 +436,6 @@ void IGameController::Snap(int SnappingClient)
 		mem_zero(pSwitchState->m_aStatus, sizeof(pSwitchState->m_aStatus));
 
 		std::vector<std::pair<int, int>> vEndTicks; // <EndTick, SwitchNumber>
-
 		for(int i = 0; i <= pSwitchState->m_HighestSwitchNumber; i++)
 		{
 			int Status = (int)GameServer()->Switchers()[i].m_Status[Team];
@@ -491,7 +455,6 @@ void IGameController::Snap(int SnappingClient)
 
 		std::sort(vEndTicks.begin(), vEndTicks.end());
 		const int NumTimedSwitchers = minimum((int)vEndTicks.size(), (int)std::size(pSwitchState->m_aEndTicks));
-
 		for(int i = 0; i < NumTimedSwitchers; i++)
 		{
 			pSwitchState->m_aSwitchNumbers[i] = vEndTicks[i].second;

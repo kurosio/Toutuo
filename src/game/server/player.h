@@ -43,7 +43,6 @@ public:
 	int GetCID() const { return m_ClientID; }
 	uint32_t GetUniqueCID() const { return m_UniqueClientID; }
 	int GetClientVersion() const;
-	bool SetTimerType(int TimerType);
 
 	void Tick();
 	void PostTick();

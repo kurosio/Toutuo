@@ -196,11 +196,6 @@ public:
 	void SendEmoticon(int ClientID, int Emoticon);
 	void SendWeaponPickup(int ClientID, int Weapon);
 	void SendMotd(int ClientID);
-
-	void List(int ClientID, const char *filter);
-
-	//
-	void CheckPureTuning();
 	void SendTuningParams(int ClientID, int Zone = 0);
 
 	struct CVoteOptionServer *GetVoteOption(int Index);

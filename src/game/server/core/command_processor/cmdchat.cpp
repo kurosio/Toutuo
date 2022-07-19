@@ -16,7 +16,6 @@ void CCommandsChatProcessor::Init(IServer *pServer, IConsole *pConsole)
 	ChatCommand("rules", "", ConRules, "Shows the server rules");
 	ChatCommand("help", "?r[command]", ConHelp, "Shows help to command r, general help if left blank");
 	ChatCommand("info", "", ConInfo, "Shows info about this server");
-	ChatCommand("list", "?s[filter]", ConList, "List connected players with optional case-insensitive substring matching filter");
 	ChatCommand("me", "r[message]", ConMe, "Like the famous irc command '/me says hi' will display '<yourname> says hi'");
 	ChatCommand("w", "s[player name] r[message]", ConWhisper, "Whisper something to someone (private message)");
 	ChatCommand("whisper", "s[player name] r[message]", ConWhisper, "Whisper something to someone (private message)");
@@ -47,16 +46,6 @@ void CCommandsChatProcessor::ConInfo(IConsole::IResult *pResult, void *pUserData
 	if(GIT_SHORTREV_HASH)
 		pGS->Chat(ClientID, "Git revision hash: {STR}", GIT_SHORTREV_HASH);
 	pGS->Chat(ClientID, "For more info: /cmdlist");
-}
-
-void CCommandsChatProcessor::ConList(IConsole::IResult *pResult, void *pUserData)
-{
-	const int ClientID = pResult->m_ClientID;
-	IServer *pServer = (IServer *)pUserData;
-	CGameContext *pGS = (CGameContext *)pServer->GameServer(pServer->GetClientWorldID(ClientID));
-
-	if(pGS->GetPlayer(ClientID))
-		pGS->List(ClientID, (pResult->NumArguments() > 0 ? pResult->GetString(0) : "\0"));
 }
 
 void CCommandsChatProcessor::ConHelp(IConsole::IResult *pResult, void *pUserData)

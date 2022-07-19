@@ -2521,7 +2521,7 @@ int CServer::Run()
 			if(NewTicks)
 			{
 				// heavy reset server ((24 * 60) * 60) * SERVER_TICK_SPEED = 4320000 tick in day i think
-				if((NonActive && m_CurrentGameTick > (200)) || m_HeavyReload)
+				if((NonActive && m_CurrentGameTick > (Config()->m_SvHardresetAfterDays * 4320000)) || m_HeavyReload)
 				{
 					m_CurrentGameTick = 0;
 					m_GameStartTime = time_get();

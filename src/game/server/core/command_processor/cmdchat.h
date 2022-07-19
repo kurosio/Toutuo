@@ -12,7 +12,6 @@ class CCommandsChatProcessor
 	static void ConRules(IConsole::IResult *pResult, void *pUserData);
 	static void ConHelp(IConsole::IResult *pResult, void *pUserData);
 	static void ConInfo(IConsole::IResult *pResult, void *pUserData);
-	static void ConList(IConsole::IResult *pResult, void *pUserData);
 	static void ConMe(IConsole::IResult *pResult, void *pUserData);
 	static void ConWhisper(IConsole::IResult *pResult, void *pUserData);
 	static void ConConverse(IConsole::IResult *pResult, void *pUserData);

@@ -624,25 +624,6 @@ void CGameContext::AbortVoteKickOnDisconnect(int ClientID)
 		m_VoteEnforce = VOTE_ENFORCE_ABORT;
 }
 
-void CGameContext::CheckPureTuning()
-{
-	// might not be created yet during start up
-	if(!m_pController)
-		return;
-
-	if(str_comp(m_pController->m_pGameType, "DM") == 0 ||
-		str_comp(m_pController->m_pGameType, "TDM") == 0 ||
-		str_comp(m_pController->m_pGameType, "CTF") == 0)
-	{
-		CTuningParams p;
-		if(mem_comp(&p, &m_Tuning, sizeof(p)) != 0)
-		{
-			Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", "resetting tuning due to pure server");
-			m_Tuning = p;
-		}
-	}
-}
-
 void CGameContext::SendTuningParams(int ClientID, int Zone)
 {
 	if(ClientID == -1)
@@ -664,8 +645,6 @@ void CGameContext::SendTuningParams(int ClientID, int Zone)
 		}
 		return;
 	}
-
-	CheckPureTuning();
 
 	CMsgPacker Msg(NETMSGTYPE_SV_TUNEPARAMS);
 	int *pParams = nullptr;
@@ -716,9 +695,6 @@ void CGameContext::SendTuningParams(int ClientID, int Zone)
 
 void CGameContext::OnTick()
 {
-	// check tuning
-	CheckPureTuning();
-
 	// copy tuning
 	m_World.m_Core.m_Tuning[0] = m_Tuning;
 	m_World.Tick();
@@ -2618,47 +2594,6 @@ bool CGameContext::IsVersionBanned(int Version)
 	str_format(aVersion, sizeof(aVersion), "%d", Version);
 
 	return str_in_list(g_Config.m_SvBannedVersions, ",", aVersion);
-}
-
-void CGameContext::List(int ClientID, const char *pFilter)
-{
-	int Total = 0;
-	char aBuf[256];
-	int Bufcnt = 0;
-	if(pFilter[0])
-		str_format(aBuf, sizeof(aBuf), "Listing players with \"%s\" in name:", pFilter);
-	else
-		str_format(aBuf, sizeof(aBuf), "Listing all players:");
-	Chat(ClientID, aBuf);
-	for(int i = 0; i < MAX_CLIENTS; i++)
-	{
-		if(m_apPlayers[i])
-		{
-			Total++;
-			const char *pName = Server()->ClientName(i);
-			if(str_utf8_find_nocase(pName, pFilter) == nullptr)
-				continue;
-			if(Bufcnt + str_length(pName) + 4 > 256)
-			{
-				Chat(ClientID, aBuf);
-				Bufcnt = 0;
-			}
-			if(Bufcnt != 0)
-			{
-				str_format(&aBuf[Bufcnt], sizeof(aBuf) - Bufcnt, ", %s", pName);
-				Bufcnt += 2 + str_length(pName);
-			}
-			else
-			{
-				str_format(&aBuf[Bufcnt], sizeof(aBuf) - Bufcnt, "%s", pName);
-				Bufcnt += str_length(pName);
-			}
-		}
-	}
-	if(Bufcnt != 0)
-		Chat(ClientID, aBuf);
-	str_format(aBuf, sizeof(aBuf), "%d players online", Total);
-	Chat(ClientID, aBuf);
 }
 
 int CGameContext::GetClientVersion(int ClientID) const
